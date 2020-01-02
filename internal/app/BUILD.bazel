@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "app.go",
+        "config.go",
+    ],
+    importpath = "github.com/gardener/apiserver-proxy/internal/app",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//internal/iptables:go_default_library",
+        "//internal/netif:go_default_library",
+        "@io_k8s_klog//:go_default_library",
+        "@io_k8s_utils//exec:go_default_library",
+    ],
+)

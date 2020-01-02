@@ -1,0 +1,16 @@
+schemaVersion: 2.0.0
+
+commandTests:
+- name: iptables_test
+  command: iptables
+  args:
+  - --version
+  expectedOutput:
+  - iptables v1.8.3 .*
+- name: ip_route_test
+  command: ip
+  args:
+  - help
+  exitCode: 255
+  expectedError:
+  - "Usage: ip .*"

@@ -1,0 +1,1 @@
+../../bazel-bin/internal/netif/mocks_test.go
