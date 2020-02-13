@@ -16,46 +16,39 @@ package app
 
 import (
 	"fmt"
-	"net"
-	"os"
 	"strings"
 	"time"
 
+	"golang.org/x/xerrors"
+
 	utiliptables "github.com/gardener/apiserver-proxy/internal/iptables"
 	"github.com/gardener/apiserver-proxy/internal/netif"
+	"github.com/vishvananda/netlink"
 	"k8s.io/klog"
 	"k8s.io/utils/exec"
 )
 
-// NewCacheApp returns a new instance of CacheApp by applying the specified config params.
-func NewCacheApp(params *ConfigParams) (*CacheApp, error) {
-	c := &CacheApp{params: params}
-	if params.IPAddress == "" {
-		klog.Infof("No ip-address provided, using environment variable")
+// NewSidecarApp returns a new instance of SidecarApp by applying the specified config params.
+func NewSidecarApp(params *ConfigParams) (*SidecarApp, error) {
+	c := &SidecarApp{params: params}
 
-		c.localIPStr = os.ExpandEnv("${KUBERNETES_SERVICE_HOST}")
-	} else {
-		klog.Infof("Using IP address %q", params.IPAddress)
-
-		c.localIPStr = params.IPAddress
+	addr, err := netlink.ParseAddr(fmt.Sprintf("%s/32", c.params.IPAddress))
+	if err != nil || addr == nil {
+		return nil, xerrors.Errorf("unable to parse IP address %q - %v", c.params.IPAddress, err)
 	}
 
-	c.localIP = net.ParseIP(c.localIPStr)
+	c.localIP = addr
 
-	if c.localIP == nil {
-		return nil, fmt.Errorf("unable to lookup IP address of Upstream service kubernetes, ip address was %q", c.localIPStr)
-	}
-
-	klog.Infof("Using %q as master service IP", c.localIPStr)
+	klog.Infof("Using IP address %q", params.IPAddress)
 
 	return c, nil
 }
 
 // TeardownNetworking removes all custom iptables rules and network interface added by node-cache
-func (c *CacheApp) TeardownNetworking() error {
+func (c *SidecarApp) TeardownNetworking() error {
 	klog.Infof("Cleaning up")
 
-	err := c.netManager.RemoveDummyDevice()
+	err := c.netManager.RemoveIPAddress()
 
 	if c.params.SetupIptables {
 		for _, rule := range c.iptablesRules {
@@ -72,24 +65,24 @@ func (c *CacheApp) TeardownNetworking() error {
 	return err
 }
 
-func (c *CacheApp) getIPTables() utiliptables.Interface {
+func (c *SidecarApp) getIPTables() utiliptables.Interface {
 	// using the localIPStr param since we need ip strings here
 	c.iptablesRules = append(c.iptablesRules, []iptablesRule{
 		// Match traffic destined for localIp:localPort and set the flows to be NOTRACKED, this skips connection tracking
-		{utiliptables.Table("raw"), utiliptables.ChainPrerouting, []string{"-p", "tcp", "-d", c.localIPStr,
+		{utiliptables.Table("raw"), utiliptables.ChainPrerouting, []string{"-p", "tcp", "-d", c.params.IPAddress,
 			"--dport", c.params.LocalPort, "-j", "NOTRACK"}},
 		// There are rules in filter table to allow tracked connections to be accepted. Since we skipped connection tracking,
 		// need these additional filter table rules.
-		{utiliptables.TableFilter, utiliptables.ChainInput, []string{"-p", "tcp", "-d", c.localIPStr,
+		{utiliptables.TableFilter, utiliptables.ChainInput, []string{"-p", "tcp", "-d", c.params.IPAddress,
 			"--dport", c.params.LocalPort, "-j", "ACCEPT"}},
-		// Match traffic from c.localIPStr:localPort and set the flows to be NOTRACKED, this skips connection tracking
-		{utiliptables.Table("raw"), utiliptables.ChainOutput, []string{"-p", "tcp", "-s", c.localIPStr,
+		// Match traffic from c.params.IPAddress:localPort and set the flows to be NOTRACKED, this skips connection tracking
+		{utiliptables.Table("raw"), utiliptables.ChainOutput, []string{"-p", "tcp", "-s", c.params.IPAddress,
 			"--sport", c.params.LocalPort, "-j", "NOTRACK"}},
-		// Additional filter table rules for traffic frpm c.localIPStr:localPort
-		{utiliptables.TableFilter, utiliptables.ChainOutput, []string{"-p", "tcp", "-s", c.localIPStr,
+		// Additional filter table rules for traffic frpm c.params.IPAddress:localPort
+		{utiliptables.TableFilter, utiliptables.ChainOutput, []string{"-p", "tcp", "-s", c.params.IPAddress,
 			"--sport", c.params.LocalPort, "-j", "ACCEPT"}},
 		// Skip connection tracking for requests to apiserver-proxy that are locally generated, example - by hostNetwork pods
-		{utiliptables.Table("raw"), utiliptables.ChainOutput, []string{"-p", "tcp", "-d", c.localIPStr,
+		{utiliptables.Table("raw"), utiliptables.ChainOutput, []string{"-p", "tcp", "-d", c.params.IPAddress,
 			"--dport", c.params.LocalPort, "-j", "NOTRACK"}},
 	}...)
 	execer := exec.New()
@@ -97,7 +90,7 @@ func (c *CacheApp) getIPTables() utiliptables.Interface {
 	return utiliptables.New(execer, utiliptables.ProtocolIpv4)
 }
 
-func (c *CacheApp) runPeriodic() {
+func (c *SidecarApp) runPeriodic() {
 	tick := time.NewTicker(c.params.Interval)
 
 	for {
@@ -111,7 +104,7 @@ func (c *CacheApp) runPeriodic() {
 	}
 }
 
-func (c *CacheApp) runChecks() {
+func (c *SidecarApp) runChecks() {
 	if c.params.SetupIptables {
 		for _, rule := range c.iptablesRules {
 			exists, err := c.iptables.EnsureRule(utiliptables.Prepend, rule.table, rule.chain, rule.args...)
@@ -134,17 +127,17 @@ func (c *CacheApp) runChecks() {
 		}
 	}
 
-	klog.V(2).Infoln("Ensuring dummy interface")
+	klog.V(2).Infoln("Ensuring ip address")
 
-	if err := c.netManager.EnsureDummyDevice(); err != nil {
-		klog.Errorf("Error ensuring interface: %v", err)
+	if err := c.netManager.EnsureIPAddress(); err != nil {
+		klog.Errorf("Error ensuring ip address: %v", err)
 	}
 
-	klog.V(2).Infoln("Ensured dummy interface")
+	klog.V(2).Infoln("Ensured ip address")
 }
 
 // RunApp invokes the background checks and runs coreDNS as a cache
-func (c *CacheApp) RunApp(stopCh <-chan struct{}) {
+func (c *SidecarApp) RunApp(stopCh <-chan struct{}) {
 	c.netManager = netif.NewNetifManager(c.localIP, c.params.Interface)
 	c.exitChan = stopCh
 
@@ -163,12 +156,13 @@ func (c *CacheApp) RunApp(stopCh <-chan struct{}) {
 
 	c.runChecks()
 
-	// Ensure that the required setup is ready
-	// https://github.com/kubernetes/dns/issues/282
-	// sometimes the interface gets the ip and then loses it, if added too soon.
-	c.runChecks()
-	// run periodic blocks
-	c.runPeriodic()
+	if c.params.Daemon {
+		klog.Infoln("Running as a daemon")
+		// run periodic blocks
+		c.runPeriodic()
+	}
+
+	klog.Infoln("Exiting... Bye!")
 }
 
 func isLockedErr(err error) bool {

@@ -32,20 +32,27 @@ func parseAndValidateFlags() *app.ConfigParams {
 		flag.PrintDefaults()
 	}
 
-	params := &app.ConfigParams{LocalPort: "443"}
+	params := &app.ConfigParams{}
 
 	cmd := goflag.CommandLine
 	klog.InitFlags(cmd)
 	flag.CommandLine.AddGoFlagSet(cmd)
 
-	flag.StringVar(&params.Interface, "interface", "apisrv0", "[optional] name of the interface to be created")
-	flag.DurationVar(&params.Interval, "syncinterval", time.Minute, "[optional] interval to check for iptables rules")
-	flag.BoolVar(&params.SetupIptables, "setupiptables", true, "indicates whether iptables rules should be setup")
+	flag.StringVar(&params.Interface, "interface", "lo", "[optional] name of the interface to add address to.")
+	flag.DurationVar(&params.Interval, "sync-interval", time.Minute, "[optional] interval to check for iptables rules.")
+	flag.BoolVar(&params.SetupIptables, "setup-iptables", false,
+		"[optional] indicates whether iptables rules should be setup.")
 	flag.BoolVar(&params.Cleanup, "cleanup", false,
-		"indicates whether created interface and iptables should be removed on exit")
-	flag.StringVar(&params.IPAddress, "ip-address", "", `[optional] ip-address on which the proxy is listening.
-		If not set, it uses the "KUBERNETES_SERVICE_HOST" environment variable`)
+		"[optional] indicates whether created interface and iptables should be removed on exit.")
+	flag.BoolVar(&params.Daemon, "daemon", true,
+		"[optional] indicates if the sidecar should run as a daemon")
+	flag.StringVar(&params.IPAddress, "ip-address", "", "ip-address on which the proxy is listening (e.g. 1.2.3.4).")
+	flag.StringVar(&params.LocalPort, "port", "443", "[optional] port on which the proxy is listening.")
 	flag.Parse()
+
+	if params.IPAddress == "" {
+		klog.Fatalf("--ip-address is required")
+	}
 
 	return params
 }
@@ -53,9 +60,9 @@ func parseAndValidateFlags() *app.ConfigParams {
 func main() {
 	params := parseAndValidateFlags()
 
-	cache, err := app.NewCacheApp(params)
+	cache, err := app.NewSidecarApp(params)
 	if err != nil {
-		klog.Fatalf("Failed to obtain CacheApp instance, err %v", err)
+		klog.Fatalf("Failed to create sidecar application, err %v", err)
 	}
 
 	cache.RunApp(signals.SetupSignalHandler())

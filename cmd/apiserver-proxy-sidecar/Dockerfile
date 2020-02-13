@@ -17,4 +17,6 @@ RUN apk add --no-cache iptables iproute2
 COPY --from=builder /go/src/github.com/gardener/apiserver-proxy/apiserver-proxy-sidecar /apiserver-proxy-sidecar
 WORKDIR /
 
+USER 65534:65534
+
 ENTRYPOINT ["/apiserver-proxy-sidecar"]

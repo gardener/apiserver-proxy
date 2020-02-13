@@ -15,6 +15,7 @@ container_run_and_commit(
 container_image(
     name = "iptables_iproute_installer_wrapper",
     base = ":iptables_iproute_installer_commit.tar",
+    user = "65534:65534",
 )
 
 go_image(
