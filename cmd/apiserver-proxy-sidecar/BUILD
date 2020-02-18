@@ -15,14 +15,14 @@ container_run_and_commit(
 container_image(
     name = "iptables_iproute_installer_wrapper",
     base = ":iptables_iproute_installer_commit.tar",
-    user = "65534:65534",
+    user = "0:0",
 )
 
 go_image(
     name = "go_image",
+    base = ":iptables_iproute_installer_wrapper",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
-    base = ":iptables_iproute_installer_wrapper",
 )
 
 container_test(
