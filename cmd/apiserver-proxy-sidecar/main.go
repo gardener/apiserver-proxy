@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/gardener/apiserver-proxy/internal/app"
+	"github.com/gardener/apiserver-proxy/internal/version"
 	flag "github.com/spf13/pflag"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
@@ -48,6 +49,12 @@ func parseAndValidateFlags() *app.ConfigParams {
 		"[optional] indicates if the sidecar should run as a daemon")
 	flag.StringVar(&params.IPAddress, "ip-address", "", "ip-address on which the proxy is listening (e.g. 1.2.3.4).")
 	flag.StringVar(&params.LocalPort, "port", "443", "[optional] port on which the proxy is listening.")
+
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage of %s (%s):\n", os.Args[0], version.Version())
+		flag.PrintDefaults()
+	}
+
 	flag.Parse()
 
 	if params.IPAddress == "" {
