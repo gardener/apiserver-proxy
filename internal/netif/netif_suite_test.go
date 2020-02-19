@@ -17,6 +17,7 @@ package netif
 import (
 	"fmt"
 	"net"
+	"syscall"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -24,7 +25,6 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/vishvananda/netlink"
-	"golang.org/x/sys/unix"
 )
 
 func TestNetif(t *testing.T) {
@@ -37,15 +37,16 @@ var _ = Describe("Manager", func() {
 	var (
 		ctrl          *gomock.Controller
 		mh            *MockHandle
-		ip            net.IP
+		addr          *netlink.Addr
 		interfaceName string
 		manager       Manager
 		dm            *netifManagerDefault
 		dummy         *netlink.Dummy
+		ip            = "192.168.0.3"
 	)
 
 	BeforeEach(func() {
-		ip = net.ParseIP("192.168.0.3")
+		addr, _ = netlink.ParseAddr(ip + "/32")
 		interfaceName = "foo"
 		ctrl = gomock.NewController(GinkgoT())
 		mh = NewMockHandle(ctrl)
@@ -59,16 +60,13 @@ var _ = Describe("Manager", func() {
 
 		mh.EXPECT().AddrAdd(gomock.Any(), gomock.Any()).Times(0)
 		mh.EXPECT().AddrDel(gomock.Any(), gomock.Any()).Times(0)
-		mh.EXPECT().AddrList(gomock.Any(), gomock.Any()).Times(0)
-		mh.EXPECT().LinkAdd(gomock.Any()).Times(0)
 		mh.EXPECT().LinkByName(gomock.Any()).Times(0)
-		mh.EXPECT().LinkDel(gomock.Any()).Times(0)
 
 		ctrl.Finish()
 	})
 
 	JustBeforeEach(func() {
-		manager = NewNetifManager(ip, interfaceName)
+		manager = NewNetifManager(addr, interfaceName)
 		dm = manager.(*netifManagerDefault)
 		// override the default handler
 		dm.Handle = mh
@@ -86,7 +84,7 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("should set point to the corrext IP", func() {
-				Expect(dm.addr.IPNet).To(Equal(&net.IPNet{IP: ip, Mask: net.CIDRMask(32, 32)}))
+				Expect(dm.addr.IPNet).To(Equal(&net.IPNet{IP: net.ParseIP(ip), Mask: net.CIDRMask(32, 32)}))
 			})
 
 			It("should have the correct scope", func() {
@@ -99,7 +97,7 @@ var _ = Describe("Manager", func() {
 		})
 	})
 
-	Describe("RemoveDummyDevice", func() {
+	Describe("RemoveIPAddress", func() {
 
 		It("should return error when getting link", func() {
 			mh.EXPECT().
@@ -107,7 +105,7 @@ var _ = Describe("Manager", func() {
 				Return(nil, fmt.Errorf("err")).
 				Times(1)
 
-			err := manager.RemoveDummyDevice()
+			err := manager.RemoveIPAddress()
 			Expect(err).To(HaveOccurred())
 		})
 
@@ -120,132 +118,53 @@ var _ = Describe("Manager", func() {
 					Times(1)
 			})
 
-			It("should return error when deleting link", func() {
+			It("should return error when deleting ip address", func() {
 				mh.EXPECT().
-					LinkDel(gomock.Eq(dummy)).
+					AddrDel(gomock.Eq(dummy), gomock.Eq(addr)).
 					Return(fmt.Errorf("err")).
 					Times(1)
 
-				err := manager.RemoveDummyDevice()
+				err := manager.RemoveIPAddress()
 				Expect(err).To(HaveOccurred())
+			})
+
+			It("should return already removed error", func() {
+				mh.EXPECT().
+					AddrDel(gomock.Eq(dummy), gomock.Eq(addr)).
+					// Return(syscall.EEXIST).
+					Return(syscall.ENOENT).
+					Times(1)
+
+				err := manager.RemoveIPAddress()
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("should return no error when deleting link", func() {
 				mh.EXPECT().
-					LinkDel(gomock.Eq(dummy)).
+					AddrDel(gomock.Eq(dummy), gomock.Eq(addr)).
 					Return(nil).
 					Times(1)
 
-				err := manager.RemoveDummyDevice()
+				err := manager.RemoveIPAddress()
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 	})
 
-	Describe("EnsureDummyDevice", func() {
+	Describe("EnsureIPAddress", func() {
 
-		Context("error when getting link", func() {
+		It("should return error when getting link", func() {
+			mh.EXPECT().
+				LinkByName(gomock.Eq("foo")).
+				Return(nil, fmt.Errorf("err")).
+				Times(1)
 
-			Context("random error", func() {
-
-				It("should exit without any other operations", func() {
-					mh.EXPECT().
-						LinkByName(gomock.Eq("foo")).
-						Return(nil, fmt.Errorf("err")).
-						Times(1)
-
-					Expect(manager.EnsureDummyDevice()).To(HaveOccurred())
-				})
-			})
-
-			Context("LinkNotFoundError", func() {
-
-				BeforeEach(func() {
-					mh.EXPECT().
-						LinkByName(gomock.Eq("foo")).
-						Return(nil, netlink.LinkNotFoundError{}). // this throws nil pointer in the code
-						Times(1)
-				})
-
-				It("adds link error", func() {
-					mh.EXPECT().
-						LinkAdd(dummy).
-						Return(fmt.Errorf("error when creating link")).
-						Times(1)
-
-					Expect(manager.EnsureDummyDevice()).To(HaveOccurred())
-				})
-
-				Context("link add success", func() {
-
-					BeforeEach(func() {
-						mh.EXPECT().
-							LinkAdd(gomock.Eq(dummy)).
-							Return(nil).
-							Times(1)
-					})
-
-					It("add address error", func() {
-						mh.EXPECT().
-							AddrAdd(gomock.Eq(dummy), gomock.Eq(dm.addr)).
-							Return(fmt.Errorf("error when adding addr")).
-							Times(1)
-
-						Expect(manager.EnsureDummyDevice()).To(HaveOccurred())
-					})
-
-					It("add address succeeds", func() {
-						mh.EXPECT().
-							AddrAdd(gomock.Eq(dummy), gomock.Eq(dm.addr)).
-							Return(nil).
-							Times(1)
-
-						Expect(manager.EnsureDummyDevice()).NotTo(HaveOccurred())
-					})
-				})
-
-			})
+			err := manager.EnsureIPAddress()
+			Expect(err).To(HaveOccurred())
 		})
 
-		Context("interface is not of type dummy", func() {
-			var notDummy *netlink.Vlan
-			BeforeEach(func() {
-				notDummy = &netlink.Vlan{}
-				mh.EXPECT().
-					LinkByName(gomock.Eq("foo")).
-					Return(notDummy, nil).
-					Times(1)
-			})
+		Context("LinkByName succeeds", func() {
 
-			It("delete link with error", func() {
-				mh.EXPECT().
-					LinkDel(gomock.Eq(notDummy)).
-					Return(fmt.Errorf("some error when deleting")).
-					Times(1)
-
-				Expect(manager.EnsureDummyDevice()).To(HaveOccurred())
-			})
-
-			It("delete and recreate without error", func() {
-				mh.EXPECT().
-					LinkDel(gomock.Eq(notDummy)).
-					Return(nil).
-					Times(1)
-				mh.EXPECT().
-					LinkAdd(gomock.Eq(dummy)).
-					Return(nil).
-					Times(1)
-
-				mh.EXPECT().
-					AddrAdd(gomock.Eq(dummy), gomock.Eq(dm.addr)).
-					Return(nil).
-					Times(1)
-
-				Expect(manager.EnsureDummyDevice()).ToNot(HaveOccurred())
-			})
-		})
-
-		Context("existing dummy link found", func() {
 			BeforeEach(func() {
 				mh.EXPECT().
 					LinkByName(gomock.Eq("foo")).
@@ -253,92 +172,35 @@ var _ = Describe("Manager", func() {
 					Times(1)
 			})
 
-			It("returns error when listing addresses", func() {
+			It("should return error when adding ip address", func() {
 				mh.EXPECT().
-					AddrList(gomock.Eq(dummy), gomock.Eq(unix.AF_INET)).
-					Return(nil, fmt.Errorf("error listing addresses")).
+					AddrAdd(gomock.Eq(dummy), gomock.Eq(addr)).
+					Return(fmt.Errorf("err")).
 					Times(1)
 
-				Expect(manager.EnsureDummyDevice()).To(HaveOccurred())
+				err := manager.EnsureIPAddress()
+				Expect(err).To(HaveOccurred())
 			})
 
-			It("do nothing as address already exists", func() {
+			It("should return already exists error", func() {
 				mh.EXPECT().
-					AddrList(gomock.Eq(dummy), gomock.Eq(unix.AF_INET)).
-					Return([]netlink.Addr{*dm.addr}, nil).
+					AddrAdd(gomock.Eq(dummy), gomock.Eq(addr)).
+					Return(syscall.EEXIST).
 					Times(1)
 
-				Expect(manager.EnsureDummyDevice()).ToNot(HaveOccurred())
+				err := manager.EnsureIPAddress()
+				Expect(err).ToNot(HaveOccurred())
 			})
 
-			Context("add missing address", func() {
-				BeforeEach(func() {
-					mh.EXPECT().
-						AddrList(gomock.Eq(dummy), gomock.Eq(unix.AF_INET)).
-						Return([]netlink.Addr{}, nil).
-						Times(1)
+			It("should return no error when deleting link", func() {
+				mh.EXPECT().
+					AddrAdd(gomock.Eq(dummy), gomock.Eq(addr)).
+					Return(nil).
+					Times(1)
 
-				})
-
-				It("successfully", func() {
-					mh.EXPECT().
-						AddrAdd(gomock.Eq(dummy), gomock.Eq(dm.addr)).
-						Return(nil).
-						Times(1)
-
-					Expect(manager.EnsureDummyDevice()).ToNot(HaveOccurred())
-				})
-
-				It("with error", func() {
-					mh.EXPECT().
-						AddrAdd(gomock.Eq(dummy), gomock.Eq(dm.addr)).
-						Return(fmt.Errorf("error for adding address")).
-						Times(1)
-
-					Expect(manager.EnsureDummyDevice()).To(HaveOccurred())
-				})
+				err := manager.EnsureIPAddress()
+				Expect(err).ToNot(HaveOccurred())
 			})
-
-			Context("add missing address", func() {
-				var extraAddr netlink.Addr
-
-				BeforeEach(func() {
-					extraAddr = netlink.Addr{
-						IPNet: netlink.NewIPNet(net.ParseIP("1.1.1.1")),
-					}
-
-					mh.EXPECT().
-						AddrList(gomock.Eq(dummy), gomock.Eq(unix.AF_INET)).
-						Return([]netlink.Addr{extraAddr}, nil).
-						Times(1)
-				})
-
-				It("delete extra", func() {
-
-					mh.EXPECT().
-						AddrDel(gomock.Eq(dummy), gomock.Eq(&extraAddr)).
-						Return(nil).
-						Times(1)
-
-					mh.EXPECT().
-						AddrAdd(gomock.Eq(dummy), gomock.Eq(dm.addr)).
-						Return(nil).
-						Times(1)
-
-					Expect(manager.EnsureDummyDevice()).ToNot(HaveOccurred())
-				})
-
-				It("delete extra with error", func() {
-
-					mh.EXPECT().
-						AddrDel(gomock.Eq(dummy), gomock.Eq(&extraAddr)).
-						Return(fmt.Errorf("error deleting extra ip")).
-						Times(1)
-
-					Expect(manager.EnsureDummyDevice()).To(HaveOccurred())
-				})
-			})
-
 		})
 	})
 
