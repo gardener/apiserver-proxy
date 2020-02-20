@@ -1,0 +1,2 @@
+# include git version
+build --stamp --workspace_status_command internal/version/status.sh

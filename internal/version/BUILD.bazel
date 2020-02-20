@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["version.go"],
+    importpath = "github.com/gardener/apiserver-proxy/internal/version",
+    visibility = ["//:__subpackages__"],
+    x_defs = {
+        "gitTag": "{STABLE_BUILD_GIT_TAG}",
+        "gitCommit": "{STABLE_BUILD_GIT_COMMIT}",
+    },
+)

@@ -38,6 +38,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//internal/app:go_default_library",
+        "//internal/version:go_default_library",
         "@com_github_spf13_pflag//:go_default_library",
         "@io_k8s_klog//:go_default_library",
         "@io_k8s_sigs_controller_runtime//pkg/manager/signals:go_default_library",
