@@ -1,5 +1,7 @@
 # API Server proxy
 
+[![reuse compliant](https://reuse.software/badge/reuse-compliant.svg)](https://reuse.software/)
+
 This component consists of `apiserver-proxy-sidecar` which runs on every `Node` in a `Shoot` cluster.
 It does the following:
 
