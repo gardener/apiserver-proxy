@@ -1,8 +1,19 @@
 // +build linux
 
 /*
-SPDX-FileCopyrightText: 2019 The Kubernetes Authors.
-SPDX-License-Identifier: Apache-2.0
+Copyright 2019 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package iptables
@@ -89,12 +100,12 @@ func (mfc *monitorFakeCmd) CombinedOutput() ([]byte, error) {
 		return []byte("iptables v1.6.2"), nil
 	}
 
-	if len(mfc.args) != 6 || mfc.args[0] != WaitString || mfc.args[1] != WaitSecondsValue || mfc.args[4] != "-t" {
+	if len(mfc.args) != 8 || mfc.args[0] != WaitString || mfc.args[1] != WaitSecondsValue || mfc.args[2] != WaitIntervalString || mfc.args[3] != WaitIntervalUsecondsValue || mfc.args[6] != "-t" {
 		panic(fmt.Sprintf("bad args %#v", mfc.args))
 	}
-	op := operation(mfc.args[2])
-	chainName := mfc.args[3]
-	tableName := mfc.args[5]
+	op := operation(mfc.args[4])
+	chainName := mfc.args[5]
+	tableName := mfc.args[7]
 
 	mfc.mfe.Lock()
 	defer mfc.mfe.Unlock()
@@ -119,9 +130,8 @@ func (mfc *monitorFakeCmd) CombinedOutput() ([]byte, error) {
 	case opListChain:
 		if table.Has(chainName) {
 			return []byte{}, nil
-		} else {
-			return []byte{}, fmt.Errorf("no such chain %q", chainName)
 		}
+		return []byte{}, fmt.Errorf("no such chain %q", chainName)
 	case opDeleteChain:
 		table.Delete(chainName)
 		return []byte{}, nil
@@ -170,7 +180,7 @@ func (mfc *monitorFakeCmd) Stop() {
 
 func TestIPTablesMonitor(t *testing.T) {
 	mfe := newMonitorFakeExec()
-	ipt := New(mfe, ProtocolIpv4)
+	ipt := New(mfe, ProtocolIPv4)
 
 	var reloads uint32
 	stopCh := make(chan struct{})
