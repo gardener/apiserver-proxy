@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "auth",
+    srcs = ["plugins.go"],
+    importmap = "github.com/gardener/apiserver-proxy/vendor/k8s.io/client-go/plugin/pkg/client/auth",
+    importpath = "k8s.io/client-go/plugin/pkg/client/auth",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/k8s.io/client-go/plugin/pkg/client/auth/azure",
+        "//vendor/k8s.io/client-go/plugin/pkg/client/auth/gcp",
+        "//vendor/k8s.io/client-go/plugin/pkg/client/auth/oidc",
+        "//vendor/k8s.io/client-go/plugin/pkg/client/auth/openstack",
+    ],
+)

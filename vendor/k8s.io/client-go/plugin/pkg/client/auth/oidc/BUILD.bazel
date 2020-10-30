@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "oidc",
+    srcs = ["oidc.go"],
+    importmap = "github.com/gardener/apiserver-proxy/vendor/k8s.io/client-go/plugin/pkg/client/auth/oidc",
+    importpath = "k8s.io/client-go/plugin/pkg/client/auth/oidc",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/golang.org/x/oauth2",
+        "//vendor/k8s.io/apimachinery/pkg/util/net",
+        "//vendor/k8s.io/client-go/rest",
+        "//vendor/k8s.io/klog/v2:klog",
+    ],
+)
