@@ -47,6 +47,12 @@
                 "creationTimestamp": null
             },
             "spec": {
+                "initContainers": [
+                    {
+                        "name": "foo-init",
+                        "resources": {}
+                    }
+                ],
                 "containers": [
                     {
                         "name": "foo",

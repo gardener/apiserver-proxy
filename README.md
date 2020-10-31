@@ -76,6 +76,16 @@ https://localhost:9443/webhook/pod-apiserver-env | jq -r '.response.patch' | bas
 [
   {
     "op": "add",
+    "path": "/spec/initContainers/0/env",
+    "value": [
+      {
+        "name": "KUBERNETES_SERVICE_HOST",
+        "value": "foo.bar."
+      }
+    ]
+  },
+  {
+    "op": "add",
     "path": "/spec/containers/0/env",
     "value": [
       {

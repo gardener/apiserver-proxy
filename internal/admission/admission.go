@@ -61,13 +61,18 @@ func (p *PodMutator) Default() {
 		return
 	}
 
-	for i, c := range p.Pod.Spec.Containers {
+	p.mutateContainers(p.Pod.Spec.Containers)
+	p.mutateContainers(p.Pod.Spec.InitContainers)
+}
+
+func (p *PodMutator) mutateContainers(containers []corev1.Container) {
+	for i, c := range containers {
 		if len(c.Env) == 0 || !hasEnv(c.Env) {
 			if c.Env == nil {
 				c.Env = make([]corev1.EnvVar, 0, 1)
 			}
 
-			p.Pod.Spec.Containers[i].Env = append(p.Pod.Spec.Containers[i].Env, corev1.EnvVar{
+			containers[i].Env = append(containers[i].Env, corev1.EnvVar{
 				Name:      "KUBERNETES_SERVICE_HOST",
 				Value:     p.fqdn,
 				ValueFrom: nil,
@@ -77,13 +82,11 @@ func (p *PodMutator) Default() {
 }
 
 func hasEnv(envs []corev1.EnvVar) bool {
-	found := false
-
 	for _, e := range envs {
 		if e.Name == "KUBERNETES_SERVICE_HOST" {
 			return true
 		}
 	}
 
-	return found
+	return false
 }

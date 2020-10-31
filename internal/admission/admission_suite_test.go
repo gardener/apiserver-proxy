@@ -153,6 +153,18 @@ var _ = Describe("Pod admission", func() {
 		Expect(pod).To(Equal(expected))
 	})
 
+	It("it adds extra environment variable to init containers", func() {
+		pod.Spec.InitContainers = []corev1.Container{{Name: "init"}}
+		expected.Spec.Containers[0].Env = []corev1.EnvVar{{Name: "KUBERNETES_SERVICE_HOST", Value: "real-fqdn"}}
+		expected.Spec.InitContainers = []corev1.Container{{
+			Name: "init",
+			Env: []corev1.EnvVar{{Name: "KUBERNETES_SERVICE_HOST", Value: "real-fqdn"}},
+		}}
+
+		Expect(wh.Admit(context.TODO(), newPodAttribute(pod), webhooktesting.NewObjectInterfacesForTest())).NotTo(HaveOccurred())
+		Expect(pod).To(Equal(expected))
+	})
+
 	It("it doesn't override existing KUBERNETES_SERVICE_HOST variable", func() {
 		pod.Spec.Containers[0].Env = []corev1.EnvVar{{Name: "KUBERNETES_SERVICE_HOST", Value: "baz"}}
 		pod.Spec.Containers = append(pod.Spec.Containers, corev1.Container{Name: "test-2"})
