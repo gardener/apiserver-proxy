@@ -10,8 +10,13 @@ apiserver-proxy:
           apiserver-proxy:
             registry: 'gcr-readwrite'
             image: 'eu.gcr.io/gardener-project/gardener/apiserver-proxy'
-            dockerfile: 'cmd/apiserver-proxy-sidecar/Dockerfile'
+            dockerfile: 'cmd/Dockerfile'
             target: apiserver-proxy
+          apiserver-proxy-pod-webhook:
+            registry: 'gcr-readwrite'
+            image: 'eu.gcr.io/gardener-project/gardener/apiserver-proxy-pod-webhook'
+            dockerfile: 'cmd/Dockerfile'
+            target: apiserver-proxy-pod-webhook
     steps: ~
   jobs:
     head-update:
