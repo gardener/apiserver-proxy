@@ -73,6 +73,11 @@ curl -k -XPOST --silent \
  -d "@internal/admission/testdata/admission.json" \
  -H "Accept: application/json" \
 https://localhost:9443/webhook/pod-apiserver-env | jq -r '.response.patch' | base64 -d | jq -r '.'
+```
+
+Output:
+
+```json
 [
   {
     "op": "add",

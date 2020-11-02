@@ -1,7 +1,7 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: poad-apiserver-env.networking.gardener.cloud
+  name: apiserver-proxy.networking.gardener.cloud
 webhooks:
 - admissionReviewVersions:
   - v1beta1
@@ -10,7 +10,7 @@ webhooks:
     url: https://localhost:10250/webhook/pod-apiserver-env
   failurePolicy: Ignore
   matchPolicy: Exact
-  name: poad-apiserver-env.networking.gardener.cloud
+  name: apiserver-proxy.networking.gardener.cloud
   namespaceSelector:
     matchExpressions:
     - key: apiserver-proxy.networking.gardener.cloud/inject
