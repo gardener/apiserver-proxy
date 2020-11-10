@@ -1,1 +1,4 @@
 bazel-*
+.vscode
+.github
+.reuse

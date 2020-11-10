@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -13,7 +14,7 @@ import (
 	utiliptables "github.com/gardener/apiserver-proxy/internal/iptables"
 	"github.com/gardener/apiserver-proxy/internal/netif"
 	"github.com/vishvananda/netlink"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 	"k8s.io/utils/exec"
 )
 
@@ -76,19 +77,20 @@ func (c *SidecarApp) getIPTables() utiliptables.Interface {
 	}...)
 	execer := exec.New()
 
-	return utiliptables.New(execer, utiliptables.ProtocolIpv4)
+	return utiliptables.New(execer, utiliptables.ProtocolIPv4)
 }
 
-func (c *SidecarApp) runPeriodic() {
+func (c *SidecarApp) runPeriodic(ctx context.Context) {
 	tick := time.NewTicker(c.params.Interval)
 
 	for {
 		select {
+		case <-ctx.Done():
+			klog.Warningf("Exiting iptables/interface check goroutine")
+
+			return
 		case <-tick.C:
 			c.runChecks()
-		case <-c.exitChan:
-			klog.Warningf("Exiting iptables/interface check goroutine")
-			return
 		}
 	}
 }
@@ -102,9 +104,11 @@ func (c *SidecarApp) runChecks() {
 			case exists:
 				// debug messages can be printed by including "debug" plugin in coreFile.
 				klog.V(2).Infof("iptables rule %v for apiserver-proxy-sidecar already exists", rule)
+
 				continue
 			case err == nil:
 				klog.Infof("Added back apiserver-proxy-sidecar rule - %v", rule)
+
 				continue
 			case isLockedErr(err):
 				// if we got here, either iptables check failed or adding rule back failed.
@@ -126,9 +130,8 @@ func (c *SidecarApp) runChecks() {
 }
 
 // RunApp invokes the background checks and runs coreDNS as a cache
-func (c *SidecarApp) RunApp(stopCh <-chan struct{}) {
+func (c *SidecarApp) RunApp(ctx context.Context) {
 	c.netManager = netif.NewNetifManager(c.localIP, c.params.Interface)
-	c.exitChan = stopCh
 
 	if c.params.SetupIptables {
 		c.iptables = c.getIPTables()
@@ -139,6 +142,7 @@ func (c *SidecarApp) RunApp(stopCh <-chan struct{}) {
 			if err := c.TeardownNetworking(); err != nil {
 				klog.Fatalf("Failed to clean up - %v", err)
 			}
+
 			klog.Infoln("Successfully cleaned up everything. Bye!")
 		}()
 	}
@@ -148,7 +152,7 @@ func (c *SidecarApp) RunApp(stopCh <-chan struct{}) {
 	if c.params.Daemon {
 		klog.Infoln("Running as a daemon")
 		// run periodic blocks
-		c.runPeriodic()
+		c.runPeriodic(ctx)
 	}
 
 	klog.Infoln("Exiting... Bye!")

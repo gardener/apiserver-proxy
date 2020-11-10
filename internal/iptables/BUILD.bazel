@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
-    name = "go_default_library",
+    name = "iptables",
     srcs = [
         "doc.go",
         "iptables.go",
@@ -12,47 +12,47 @@ go_library(
     importpath = "github.com/gardener/apiserver-proxy/internal/iptables",
     visibility = ["//visibility:public"],
     deps = [
-        "@io_k8s_apimachinery//pkg/util/sets:go_default_library",
-        "@io_k8s_apimachinery//pkg/util/version:go_default_library",
-        "@io_k8s_apimachinery//pkg/util/wait:go_default_library",
-        "@io_k8s_klog//:go_default_library",
-        "@io_k8s_utils//exec:go_default_library",
-        "@io_k8s_utils//trace:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/util/sets",
+        "//vendor/k8s.io/apimachinery/pkg/util/version",
+        "//vendor/k8s.io/apimachinery/pkg/util/wait",
+        "//vendor/k8s.io/klog/v2:klog",
+        "//vendor/k8s.io/utils/exec",
+        "//vendor/k8s.io/utils/trace",
     ] + select({
         "@io_bazel_rules_go//go/platform:android": [
-            "@io_k8s_apimachinery//pkg/util/errors:go_default_library",
-            "@org_golang_x_sys//unix:go_default_library",
+            "//vendor/golang.org/x/sys/unix",
+            "//vendor/k8s.io/apimachinery/pkg/util/errors",
         ],
         "@io_bazel_rules_go//go/platform:linux": [
-            "@io_k8s_apimachinery//pkg/util/errors:go_default_library",
-            "@org_golang_x_sys//unix:go_default_library",
+            "//vendor/golang.org/x/sys/unix",
+            "//vendor/k8s.io/apimachinery/pkg/util/errors",
         ],
         "//conditions:default": [],
     }),
 )
 
 go_test(
-    name = "go_default_test",
+    name = "iptables_test",
     srcs = [
         "iptables_test.go",
         "monitor_test.go",
         "save_restore_test.go",
     ],
-    embed = [":go_default_library"],
+    embed = [":iptables"],
     deps = select({
         "@io_bazel_rules_go//go/platform:android": [
-            "@io_k8s_apimachinery//pkg/util/sets:go_default_library",
-            "@io_k8s_apimachinery//pkg/util/version:go_default_library",
-            "@io_k8s_apimachinery//pkg/util/wait:go_default_library",
-            "@io_k8s_utils//exec:go_default_library",
-            "@io_k8s_utils//exec/testing:go_default_library",
+            "//vendor/k8s.io/apimachinery/pkg/util/sets",
+            "//vendor/k8s.io/apimachinery/pkg/util/version",
+            "//vendor/k8s.io/apimachinery/pkg/util/wait",
+            "//vendor/k8s.io/utils/exec",
+            "//vendor/k8s.io/utils/exec/testing",
         ],
         "@io_bazel_rules_go//go/platform:linux": [
-            "@io_k8s_apimachinery//pkg/util/sets:go_default_library",
-            "@io_k8s_apimachinery//pkg/util/version:go_default_library",
-            "@io_k8s_apimachinery//pkg/util/wait:go_default_library",
-            "@io_k8s_utils//exec:go_default_library",
-            "@io_k8s_utils//exec/testing:go_default_library",
+            "//vendor/k8s.io/apimachinery/pkg/util/sets",
+            "//vendor/k8s.io/apimachinery/pkg/util/version",
+            "//vendor/k8s.io/apimachinery/pkg/util/wait",
+            "//vendor/k8s.io/utils/exec",
+            "//vendor/k8s.io/utils/exec/testing",
         ],
         "//conditions:default": [],
     }),

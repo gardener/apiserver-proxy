@@ -29,7 +29,6 @@ type SidecarApp struct {
 	params        *ConfigParams
 	netManager    netif.Manager
 	localIP       *netlink.Addr
-	exitChan      <-chan struct{}
 }
 
 type iptablesRule struct {

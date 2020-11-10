@@ -1,5 +1,12 @@
 # API Server proxy
 
+This repository contains two components
+
+- API Server proxy sidecar
+- API Server proxy pod webhook
+
+## API Server proxy sidecar
+
 [![reuse compliant](https://reuse.software/badge/reuse-compliant.svg)](https://reuse.software/)
 
 This component consists of `apiserver-proxy-sidecar` which runs on every `Node` in a `Shoot` cluster.
@@ -23,7 +30,7 @@ It does the following:
 After this, the actual `apiserver-proxy` can listen on this IP address (`10.96.0.2`) and send traffic to the correct kube-apiserver.
 The implementation of that proxy is fully transparent and can be replaced at any given moment without any modifications to the `apiserver-proxy-sidecar`.
 
-## Command line options
+### Sidecar command line options
 
 ```console
 bazel run //cmd/apiserver-proxy-sidecar -- --help
@@ -48,6 +55,66 @@ bazel run //cmd/apiserver-proxy-sidecar -- --help
       --vmodule moduleSpec               comma-separated list of pattern=N settings for file-filtered logging
 ```
 
+## API Server proxy pod webhook
+
+The API Server proxy pod webhook server is a simple [mutating admission webhook](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/) which adds the Fully Qualified Domain Name of the Kube API Server to Pods as environment variable `KUBERNETES_SERVICE_HOST`. The value is set with `--apiserver-fqdn` flag.
+
+Test it with:
+
+```console
+bazel run //cmd/apiserver-proxy-pod-webhook -- --apiserver-fqdn=foo.bar. --cert-dir ${PWD}/internal/admission/testdata
+```
+
+And in another terminal:
+
+```console
+curl -k -XPOST --silent \
+ -H "Content-Type: application/json" \
+ -d "@internal/admission/testdata/admission.json" \
+ -H "Accept: application/json" \
+https://localhost:9443/webhook/pod-apiserver-env | jq -r '.response.patch' | base64 -d | jq -r '.'
+```
+
+Output:
+
+```json
+[
+  {
+    "op": "add",
+    "path": "/spec/initContainers/0/env",
+    "value": [
+      {
+        "name": "KUBERNETES_SERVICE_HOST",
+        "value": "foo.bar."
+      }
+    ]
+  },
+  {
+    "op": "add",
+    "path": "/spec/containers/0/env",
+    "value": [
+      {
+        "name": "KUBERNETES_SERVICE_HOST",
+        "value": "foo.bar."
+      }
+    ]
+  }
+]
+```
+
+### Webhook command line options
+
+```console
+bazel run //cmd/apiserver-proxy-pod-webhook -- --help
+      --apiserver-fqdn string   apiserver-fqdn is the fully qualified domain name of the Kube-API Server e.g. example.com.
+      --cert-dir string         cert-dir is the directory that contains the server key and certificate. The server key and certificate.
+      --cert-name string        [optional] cert-name is the server certificate name. (default "tls.crt")
+      --client-ca-name string   [optional] client-ca-name is the CA certificate name which server used to verify remote(client)'s certificate. Defaults to "", which means server does not verify client's certificate.
+      --host string             [optional] host is the address that the server will listen on. Defaults to "" - all addresses.
+      --key-name string         [optional] key-name is the server key name. (default "tls.key")
+      --port int                [optional] port is the port number that the server will serve. (default 9443)
+```
+
 ## Development
 
 [bazel](https://bazel.build/) is used for building and testing. Optional `Dockerfile` is provided.
@@ -56,8 +123,8 @@ bazel run //cmd/apiserver-proxy-sidecar -- --help
 
 ```shell
 go mod tidy
+go mod vendor
 
-bazel run //:gazelle -- update-repos -from_file=go.mod
 bazel run //:gazelle
 ```
 
@@ -65,6 +132,8 @@ bazel run //:gazelle
 
 ```shell
 bazel run --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //cmd/apiserver-proxy-sidecar:go_image -- --norun
+
+bazel run --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //cmd/apiserver-proxy-pod-webhook:go_image -- --norun
 ```
 
 ### Testing

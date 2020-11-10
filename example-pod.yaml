@@ -22,9 +22,10 @@ spec:
       value: 10.96.0.2
     command:
     - /app/cmd/apiserver-proxy-sidecar/go_image.binary
-    - --interface=apisrv0
+    - --interface=lo
     - --v=2
     - --cleanup=true
+    - --ip-address=100.1.2.3
     securityContext:
       privileged: true
     resources:

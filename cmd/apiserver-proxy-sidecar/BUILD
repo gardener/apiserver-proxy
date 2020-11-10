@@ -10,6 +10,7 @@ container_run_and_commit(
     name = "iptables_iproute_installer",
     commands = ["apk add --no-cache iptables iproute2 && rm -Rf /lib/apk/db/scripts.tar"],
     image = "@alpine_linux_amd64_tar//image:image.tar",
+    visibility = ["//visibility:private"],
 )
 
 container_image(
@@ -21,7 +22,7 @@ container_image(
 go_image(
     name = "go_image",
     base = ":iptables_iproute_installer_wrapper",
-    embed = [":go_default_library"],
+    embed = [":apiserver-proxy-sidecar_lib"],
     visibility = ["//visibility:public"],
 )
 
@@ -32,21 +33,21 @@ container_test(
 )
 
 go_library(
-    name = "go_default_library",
+    name = "apiserver-proxy-sidecar_lib",
     srcs = ["main.go"],
     importpath = "github.com/gardener/apiserver-proxy/cmd/apiserver-proxy-sidecar",
     visibility = ["//visibility:private"],
     deps = [
-        "//internal/app:go_default_library",
-        "//internal/version:go_default_library",
-        "@com_github_spf13_pflag//:go_default_library",
-        "@io_k8s_klog//:go_default_library",
-        "@io_k8s_sigs_controller_runtime//pkg/manager/signals:go_default_library",
+        "//internal/app",
+        "//internal/version",
+        "//vendor/github.com/spf13/pflag",
+        "//vendor/k8s.io/klog/v2:klog",
+        "//vendor/sigs.k8s.io/controller-runtime/pkg/manager/signals",
     ],
 )
 
 go_binary(
     name = "apiserver-proxy-sidecar",
-    embed = [":go_default_library"],
+    embed = [":apiserver-proxy-sidecar_lib"],
     visibility = ["//visibility:public"],
 )

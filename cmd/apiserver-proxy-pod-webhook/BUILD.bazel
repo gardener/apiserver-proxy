@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@io_bazel_rules_docker//go:image.bzl", "go_image")
+
+go_library(
+    name = "apiserver-proxy-pod-webhook_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/gardener/apiserver-proxy/cmd/apiserver-proxy-pod-webhook",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//internal/admission",
+        "//internal/version",
+        "//vendor/github.com/spf13/pflag",
+        "//vendor/k8s.io/apimachinery/pkg/util/validation",
+        "//vendor/k8s.io/apimachinery/pkg/util/validation/field",
+        "//vendor/sigs.k8s.io/controller-runtime",
+        "//vendor/sigs.k8s.io/controller-runtime/pkg/log/zap",
+        "//vendor/sigs.k8s.io/controller-runtime/pkg/webhook",
+    ],
+)
+
+go_binary(
+    name = "apiserver-proxy-pod-webhook",
+    embed = [":apiserver-proxy-pod-webhook_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_image(
+    name = "go_image",
+    embed = [":apiserver-proxy-pod-webhook_lib"],
+)

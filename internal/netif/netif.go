@@ -8,7 +8,7 @@ import (
 
 	"github.com/vishvananda/netlink"
 	"golang.org/x/xerrors"
-	"k8s.io/klog"
+	"k8s.io/klog/v2"
 )
 
 type Handle interface {
