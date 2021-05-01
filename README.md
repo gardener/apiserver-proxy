@@ -12,8 +12,8 @@ This repository contains two components
 This component consists of `apiserver-proxy-sidecar` which runs on every `Node` in a `Shoot` cluster.
 It does the following:
 
-1. adds the IP Address (`--ip-address` flag) the loopback interface  (`--interface` flag).
-1. [optionally] execute the following `iptables` rules (e.g with `--ip-address=10.96.0.2`):
+1. adds the IP Address (`--ip-address` flag) to the loopback interface  (`--interface` flag).
+1. [optionally] executes the following `iptables` rules (e.g with `--ip-address=10.96.0.2`):
 
     ```text
     -A PREROUTING -t raw -d 10.96.0.2/32 -p tcp -m tcp --dport 443 -j NOTRACK
@@ -25,7 +25,7 @@ It does the following:
 
     Those rules allow traffic to this IP address and disable conntrack as the IP address is local to the machine.
 
-1. Every 1 min repeats the process and start from `1.`
+1. Every 1 min repeats the process and starts from `1.`
 
 After this, the actual `apiserver-proxy` can listen on this IP address (`10.96.0.2`) and send traffic to the correct kube-apiserver.
 The implementation of that proxy is fully transparent and can be replaced at any given moment without any modifications to the `apiserver-proxy-sidecar`.
