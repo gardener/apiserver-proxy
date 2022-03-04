@@ -41,6 +41,10 @@ apiserver-proxy:
               slack_cfg_name: 'scp_workspace'
         component_descriptor: ~
         publish:
+          oci-builder: docker-buildx
+          platforms:
+          - linux/amd64
+          - linux/arm64
           dockerimages:
             apiserver-proxy:
               tag_as_latest: true
