@@ -1,11 +1,17 @@
 #############      builder              #############
-FROM l.gcr.io/google/bazel:3.5.0 as builder
+FROM l.gcr.io/google/bazel:3.5.0 as builder-amd64
+ARG ARCH=amd64
+
+FROM l.gcr.io/google/bazel:3.5.0 as builder-arm64
+ARG ARCH=arm64
+
+FROM builder-$TARGETARCH as builder
 
 WORKDIR /src/workspace
 COPY . .
 
-RUN bazel build --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 "//cmd/apiserver-proxy-pod-webhook:apiserver-proxy-pod-webhook"
-RUN bazel build --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 "//cmd/apiserver-proxy-sidecar:apiserver-proxy-sidecar"
+RUN bazel build --platforms=@io_bazel_rules_go//go/toolchain:linux_$ARCH "//cmd/apiserver-proxy-pod-webhook:apiserver-proxy-pod-webhook"
+RUN bazel build --platforms=@io_bazel_rules_go//go/toolchain:linux_$ARCH "//cmd/apiserver-proxy-sidecar:apiserver-proxy-sidecar"
 
 #############      apiserver-proxy      #############
 FROM alpine:3.15.4 AS apiserver-proxy
