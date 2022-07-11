@@ -26,11 +26,9 @@ USER 0:0
 ENTRYPOINT ["/apiserver-proxy-sidecar"]
 
 #############      apiserver-proxy-pod-webhook      #############
-FROM alpine:3.15.4 AS apiserver-proxy-pod-webhook
+FROM gcr.io/distroless/static-debian11:nonroot AS apiserver-proxy-pod-webhook
 
 COPY --from=builder /src/workspace/bazel-bin/cmd/apiserver-proxy-pod-webhook/apiserver-proxy-pod-webhook_/apiserver-proxy-pod-webhook /apiserver-proxy-pod-webhook
 WORKDIR /
-
-USER 0:0
 
 ENTRYPOINT ["/apiserver-proxy-pod-webhook"]
