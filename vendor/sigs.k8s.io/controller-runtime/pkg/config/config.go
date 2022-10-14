@@ -28,16 +28,16 @@ import (
 )
 
 // ControllerManagerConfiguration defines the functions necessary to parse a config file
-// and to configure the Options struct for the ctrl.Manager
+// and to configure the Options struct for the ctrl.Manager.
 type ControllerManagerConfiguration interface {
 	runtime.Object
 
-	// GetControllerManagerConfiguration returns the versioned configuration
-	GetControllerManagerConfiguration() (v1alpha1.ControllerManagerConfigurationSpec, error)
+	// Complete returns the versioned configuration
+	Complete() (v1alpha1.ControllerManagerConfigurationSpec, error)
 }
 
 // DeferredFileLoader is used to configure the decoder for loading controller
-// runtime component config types
+// runtime component config types.
 type DeferredFileLoader struct {
 	ControllerManagerConfiguration
 	path   string
@@ -62,34 +62,34 @@ func File() *DeferredFileLoader {
 	}
 }
 
-// GetControllerManagerConfiguration will use sync.Once to set the scheme
-func (d *DeferredFileLoader) GetControllerManagerConfiguration() (v1alpha1.ControllerManagerConfigurationSpec, error) {
+// Complete will use sync.Once to set the scheme.
+func (d *DeferredFileLoader) Complete() (v1alpha1.ControllerManagerConfigurationSpec, error) {
 	d.once.Do(d.loadFile)
 	if d.err != nil {
 		return v1alpha1.ControllerManagerConfigurationSpec{}, d.err
 	}
-	return d.ControllerManagerConfiguration.GetControllerManagerConfiguration()
+	return d.ControllerManagerConfiguration.Complete()
 }
 
-// AtPath will set the path to load the file for the decoder
+// AtPath will set the path to load the file for the decoder.
 func (d *DeferredFileLoader) AtPath(path string) *DeferredFileLoader {
 	d.path = path
 	return d
 }
 
-// OfKind will set the type to be used for decoding the file into
+// OfKind will set the type to be used for decoding the file into.
 func (d *DeferredFileLoader) OfKind(obj ControllerManagerConfiguration) *DeferredFileLoader {
 	d.ControllerManagerConfiguration = obj
 	return d
 }
 
-// InjectScheme will configure the scheme to be used for decoding the file
+// InjectScheme will configure the scheme to be used for decoding the file.
 func (d *DeferredFileLoader) InjectScheme(scheme *runtime.Scheme) error {
 	d.scheme = scheme
 	return nil
 }
 
-// loadFile is used from the mutex.Once to load the file
+// loadFile is used from the mutex.Once to load the file.
 func (d *DeferredFileLoader) loadFile() {
 	if d.scheme == nil {
 		d.err = fmt.Errorf("scheme not supplied to controller configuration loader")
@@ -98,7 +98,7 @@ func (d *DeferredFileLoader) loadFile() {
 
 	content, err := ioutil.ReadFile(d.path)
 	if err != nil {
-		d.err = fmt.Errorf("file could not be read from filesystem")
+		d.err = fmt.Errorf("could not read file at %s", d.path)
 		return
 	}
 
@@ -109,6 +109,4 @@ func (d *DeferredFileLoader) loadFile() {
 	if err = runtime.DecodeInto(codecs.UniversalDecoder(), content, d.ControllerManagerConfiguration); err != nil {
 		d.err = fmt.Errorf("could not decode file into runtime.Object")
 	}
-
-	return
 }
