@@ -33,7 +33,7 @@ The implementation of that proxy is fully transparent and can be replaced at any
 ### Sidecar command line options
 
 ```console
-bazel run //cmd/apiserver-proxy-sidecar -- --help
+go run ./cmd/apiserver-proxy-sidecar --help
       --add_dir_header                   If true, adds the file directory to the header
       --alsologtostderr                  log to standard error as well as files
       --cleanup                          [optional] indicates whether created interface and iptables should be removed on exit.
@@ -62,7 +62,7 @@ The API Server proxy pod webhook server is a simple [mutating admission webhook]
 Test it with:
 
 ```console
-bazel run //cmd/apiserver-proxy-pod-webhook -- --apiserver-fqdn=foo.bar. --cert-dir ${PWD}/internal/admission/testdata
+go run ./cmd/apiserver-proxy-pod-webhook --apiserver-fqdn=foo.bar. --cert-dir ${PWD}/internal/admission/testdata
 ```
 
 And in another terminal:
@@ -105,7 +105,7 @@ Output:
 ### Webhook command line options
 
 ```console
-bazel run //cmd/apiserver-proxy-pod-webhook -- --help
+go run ./cmd/apiserver-proxy-pod-webhook --help
       --apiserver-fqdn string   apiserver-fqdn is the fully qualified domain name of the Kube-API Server e.g. example.com.
       --cert-dir string         cert-dir is the directory that contains the server key and certificate. The server key and certificate.
       --cert-name string        [optional] cert-name is the server certificate name. (default "tls.crt")
@@ -117,29 +117,20 @@ bazel run //cmd/apiserver-proxy-pod-webhook -- --help
 
 ## Development
 
-[bazel](https://bazel.build/) is used for building and testing. Optional `Dockerfile` is provided.
-
 ### Update dependencies
 
 ```shell
-go mod tidy
-go mod vendor
-
-bazel run //:gazelle
+make revendor
 ```
 
-### Pushing to local Docker
+### Building container images
 
 ```shell
-bazel run --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //cmd/apiserver-proxy-sidecar:go_image -- --norun
-
-bazel run --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64 //cmd/apiserver-proxy-pod-webhook:go_image -- --norun
+make docker-images
 ```
 
 ### Testing
 
-> Note: It requires a running Docker.
-
 ```shell
-bazel test "//..."
+make test
 ```

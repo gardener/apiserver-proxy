@@ -3,17 +3,10 @@
 
 package version
 
-var (
-	gitCommit = ""
-	gitTag    = "v0.0.0-dev"
-)
+var version = "v0.0.0-dev"
 
-// Version returs the version in format `{gitTag}-{gitCommit}`
+// Version returs the codebase version. It's for detecting
+// what code a binary was built from.
 func Version() string {
-	v := gitTag
-	if gitCommit != "" {
-		v += "-" + gitCommit
-	}
-
-	return v
+	return version
 }
