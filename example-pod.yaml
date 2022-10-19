@@ -15,13 +15,12 @@ spec:
     operator: "Exists"
   containers:
   - name: apiserver-proxy
-    image: bazel/cmd/apiserver-proxy-sidecar:go_image
-    imagePullPolicy: IfNotPresent
+    image: eu.gcr.io/gardener-project/gardener/apiserver-proxy:latest
+    imagePullPolicy: Always
     env:
     - name: KUBERNETES_SERVICE_HOST
       value: 10.96.0.2
-    command:
-    - /app/cmd/apiserver-proxy-sidecar/go_image.binary
+    args:
     - --interface=lo
     - --v=2
     - --cleanup=true

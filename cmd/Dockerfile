@@ -1,17 +1,13 @@
 #############      builder              #############
-FROM l.gcr.io/google/bazel:3.5.0 as builder-amd64
-ARG ARCH=amd64
+FROM golang:1.16.15 AS builder
 
-FROM l.gcr.io/google/bazel:3.5.0 as builder-arm64
-ARG ARCH=arm64
-
-FROM builder-$TARGETARCH as builder
-
-WORKDIR /src/workspace
+WORKDIR /go/src/github.com/gardener/apiserver-proxy
 COPY . .
 
-RUN bazel build --platforms=@io_bazel_rules_go//go/toolchain:linux_$ARCH "//cmd/apiserver-proxy-pod-webhook:apiserver-proxy-pod-webhook"
-RUN bazel build --platforms=@io_bazel_rules_go//go/toolchain:linux_$ARCH "//cmd/apiserver-proxy-sidecar:apiserver-proxy-sidecar"
+ARG TARGETARCH
+ARG EFFECTIVE_VERSION
+
+RUN make build GOARCH=$TARGETARCH EFFECTIVE_VERSION=$EFFECTIVE_VERSION
 
 #############      apiserver-proxy-builder      #############
 FROM alpine:3.16.2 AS apiserver-proxy-builder
@@ -20,7 +16,7 @@ RUN apk add --no-cache iptables iproute2-minimal
 
 WORKDIR /volume
 
-COPY --from=builder /src/workspace/bazel-bin/cmd/apiserver-proxy-sidecar/apiserver-proxy-sidecar_/apiserver-proxy-sidecar ./apiserver-proxy-sidecar
+COPY --from=builder /go/src/github.com/gardener/apiserver-proxy/bin/apiserver-proxy-sidecar ./apiserver-proxy-sidecar
 
 RUN mkdir -p ./sbin ./lib ./usr/lib ./usr/lib/xtables ./tmp ./run ./etc/iproute2 \
     && cp -d /lib/ld-musl-* ./lib                                           && echo "package musl" \
@@ -61,7 +57,7 @@ ENTRYPOINT ["/apiserver-proxy-sidecar"]
 #############      apiserver-proxy-pod-webhook      #############
 FROM gcr.io/distroless/static-debian11:nonroot AS apiserver-proxy-pod-webhook
 
-COPY --from=builder /src/workspace/bazel-bin/cmd/apiserver-proxy-pod-webhook/apiserver-proxy-pod-webhook_/apiserver-proxy-pod-webhook /apiserver-proxy-pod-webhook
+COPY --from=builder /go/src/github.com/gardener/apiserver-proxy/bin/apiserver-proxy-pod-webhook /apiserver-proxy-pod-webhook
 WORKDIR /
 
 ENTRYPOINT ["/apiserver-proxy-pod-webhook"]
