@@ -29,12 +29,11 @@ func NewSidecarApp(params *ConfigParams) (*SidecarApp, error) {
 	if err != nil {
 		return nil, xerrors.Errorf("unable to parse IP address %q - %v", c.params.IPAddress, err)
 	}
-	
-		addr, err = netlink.ParseAddr(fmt.Sprintf("%s/%d", c.params.IPAddress, ip.BitLen()))
-		if err != nil || addr == nil {
-			return nil, xerrors.Errorf("unable to parse IP address %q - %v", c.params.IPAddress, err)
-		}
-	
+
+	addr, err = netlink.ParseAddr(fmt.Sprintf("%s/%d", c.params.IPAddress, ip.BitLen()))
+	if err != nil || addr == nil {
+		return nil, xerrors.Errorf("unable to parse IP address %q - %v", c.params.IPAddress, err)
+	}
 
 	c.localIP = addr
 
