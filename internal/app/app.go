@@ -11,6 +11,8 @@ import (
 
 	"golang.org/x/xerrors"
 
+	"net/netip"
+
 	utiliptables "github.com/gardener/apiserver-proxy/internal/iptables"
 	"github.com/gardener/apiserver-proxy/internal/netif"
 	"github.com/vishvananda/netlink"
@@ -21,8 +23,14 @@ import (
 // NewSidecarApp returns a new instance of SidecarApp by applying the specified config params.
 func NewSidecarApp(params *ConfigParams) (*SidecarApp, error) {
 	c := &SidecarApp{params: params}
+	addr := &netlink.Addr{}
 
-	addr, err := netlink.ParseAddr(fmt.Sprintf("%s/32", c.params.IPAddress))
+	ip, err := netip.ParseAddr(c.params.IPAddress)
+	if err != nil {
+		return nil, xerrors.Errorf("unable to parse IP address %q - %v", c.params.IPAddress, err)
+	}
+
+	addr, err = netlink.ParseAddr(fmt.Sprintf("%s/%d", c.params.IPAddress, ip.BitLen()))
 	if err != nil || addr == nil {
 		return nil, xerrors.Errorf("unable to parse IP address %q - %v", c.params.IPAddress, err)
 	}
