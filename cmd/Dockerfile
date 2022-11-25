@@ -10,7 +10,7 @@ ARG EFFECTIVE_VERSION
 RUN make build GOARCH=$TARGETARCH EFFECTIVE_VERSION=$EFFECTIVE_VERSION
 
 #############      apiserver-proxy-builder      #############
-FROM alpine:3.16.2 AS apiserver-proxy-builder
+FROM alpine:3.16.3 AS apiserver-proxy-builder
 
 RUN apk add --no-cache iptables iproute2-minimal
 
