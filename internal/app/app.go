@@ -23,14 +23,13 @@ import (
 // NewSidecarApp returns a new instance of SidecarApp by applying the specified config params.
 func NewSidecarApp(params *ConfigParams) (*SidecarApp, error) {
 	c := &SidecarApp{params: params}
-	addr := &netlink.Addr{}
 
 	ip, err := netip.ParseAddr(c.params.IPAddress)
 	if err != nil {
 		return nil, xerrors.Errorf("unable to parse IP address %q - %v", c.params.IPAddress, err)
 	}
 
-	addr, err = netlink.ParseAddr(fmt.Sprintf("%s/%d", c.params.IPAddress, ip.BitLen()))
+	addr, err := netlink.ParseAddr(fmt.Sprintf("%s/%d", c.params.IPAddress, ip.BitLen()))
 	if err != nil || addr == nil {
 		return nil, xerrors.Errorf("unable to parse IP address %q - %v", c.params.IPAddress, err)
 	}
@@ -52,11 +51,17 @@ func (c *SidecarApp) TeardownNetworking() error {
 		for _, rule := range c.iptablesRules {
 			exists := true
 			for exists {
-				c.iptables.DeleteRule(rule.table, rule.chain, rule.args...)
+				err := c.iptables.DeleteRule(rule.table, rule.chain, rule.args...)
+				if err != nil {
+					klog.Errorf("Error deleting iptables rule %v - %s", rule, err)
+				}
 				exists, _ = c.iptables.EnsureRule(utiliptables.Prepend, rule.table, rule.chain, rule.args...)
 			}
 			// Delete the rule one last time since EnsureRule creates the rule if it doesn't exist
-			c.iptables.DeleteRule(rule.table, rule.chain, rule.args...)
+			err := c.iptables.DeleteRule(rule.table, rule.chain, rule.args...)
+			if err != nil {
+				klog.Errorf("Error deleting iptables rule %v - %s", rule, err)
+			}
 		}
 	}
 

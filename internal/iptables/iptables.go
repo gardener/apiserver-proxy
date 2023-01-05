@@ -337,7 +337,7 @@ func (runner *runner) SaveInto(table Table, buffer *bytes.Buffer) error {
 
 	err := cmd.Run()
 	if err != nil {
-		stderrBuffer.WriteTo(buffer) // ignore error, since we need to return the original error
+		_, _ = stderrBuffer.WriteTo(buffer) // ignore error, since we need to return the original error
 	}
 	return err
 }

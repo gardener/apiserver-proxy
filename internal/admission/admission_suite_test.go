@@ -6,9 +6,9 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/url"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -81,7 +81,7 @@ var _ = BeforeSuite(func(done Done) {
 	webhookServer, err := url.Parse("https://localhost:10250")
 	Expect(err).ToNot(HaveOccurred(), "failed to parse url")
 
-	caCert, err := ioutil.ReadFile(filepath.Join("testdata", "ca.crt"))
+	caCert, err := os.ReadFile(filepath.Join("testdata", "ca.crt"))
 	Expect(err).NotTo(HaveOccurred(), "ca.crt can be read")
 
 	wh, err = mutating.NewMutatingWebhook(nil)
@@ -158,7 +158,7 @@ var _ = Describe("Pod admission", func() {
 		expected.Spec.Containers[0].Env = []corev1.EnvVar{{Name: "KUBERNETES_SERVICE_HOST", Value: "real-fqdn"}}
 		expected.Spec.InitContainers = []corev1.Container{{
 			Name: "init",
-			Env: []corev1.EnvVar{{Name: "KUBERNETES_SERVICE_HOST", Value: "real-fqdn"}},
+			Env:  []corev1.EnvVar{{Name: "KUBERNETES_SERVICE_HOST", Value: "real-fqdn"}},
 		}}
 
 		Expect(wh.Admit(context.TODO(), newPodAttribute(pod), webhooktesting.NewObjectInterfacesForTest())).NotTo(HaveOccurred())
