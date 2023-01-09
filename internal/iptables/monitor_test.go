@@ -204,9 +204,15 @@ func TestIPTablesMonitor(t *testing.T) {
 	}
 
 	// If we delete all of the chains, it should reload
-	ipt.DeleteChain(TableMangle, canary)
-	ipt.DeleteChain(TableFilter, canary)
-	ipt.DeleteChain(TableNAT, canary)
+	if err := ipt.DeleteChain(TableMangle, canary); err != nil {
+		t.Errorf("got unexpected error deleting chain: %v", err)
+	}
+	if err := ipt.DeleteChain(TableFilter, canary); err != nil {
+		t.Errorf("got unexpected error deleting chain: %v", err)
+	}
+	if err := ipt.DeleteChain(TableNAT, canary); err != nil {
+		t.Errorf("got unexpected error deleting chain: %v", err)
+	}
 
 	if err := waitForReloads(&reloads, 1); err != nil {
 		t.Errorf("got unexpected number of reloads after flush: %v", err)
@@ -216,8 +222,13 @@ func TestIPTablesMonitor(t *testing.T) {
 	}
 
 	// If we delete two chains, it should not reload yet
-	ipt.DeleteChain(TableMangle, canary)
-	ipt.DeleteChain(TableFilter, canary)
+	if err := ipt.DeleteChain(TableMangle, canary); err != nil {
+		t.Errorf("got unexpected error deleting chain: %v", err)
+	}
+
+	if err := ipt.DeleteChain(TableFilter, canary); err != nil {
+		t.Errorf("got unexpected error deleting chain: %v", err)
+	}
 
 	if err := waitForNoReload(&reloads, 1); err != nil {
 		t.Errorf("got unexpected number of reloads after partial flush: %v", err)
@@ -227,7 +238,9 @@ func TestIPTablesMonitor(t *testing.T) {
 	// delete the last chain. The monitor should not reload, because it can't actually
 	// tell if the chain was deleted or not.
 	mfe.blockIPTables(true)
-	ipt.DeleteChain(TableNAT, canary)
+	if err := ipt.DeleteChain(TableNAT, canary); err != nil {
+		t.Errorf("got unexpected error deleting chain: %v", err)
+	}
 	if err := waitForBlocked(mfe); err != nil {
 		t.Errorf("failed waiting for monitor to be blocked from monitoring: %v", err)
 	}
@@ -306,9 +319,12 @@ func ensureNoChains(mfe *monitorFakeExec) bool {
 
 func waitForReloads(reloads *uint32, expected uint32) error {
 	if atomic.LoadUint32(reloads) < expected {
-		utilwait.PollImmediate(100*time.Millisecond, time.Second, func() (bool, error) {
+		err := utilwait.PollImmediate(100*time.Millisecond, time.Second, func() (bool, error) {
 			return atomic.LoadUint32(reloads) >= expected, nil
 		})
+		if err != nil {
+			return fmt.Errorf("unexpected error %v", err)
+		}
 	}
 	got := atomic.LoadUint32(reloads)
 	if got != expected {
@@ -318,10 +334,13 @@ func waitForReloads(reloads *uint32, expected uint32) error {
 }
 
 func waitForNoReload(reloads *uint32, expected uint32) error {
-	utilwait.PollImmediate(50*time.Millisecond, 250*time.Millisecond, func() (bool, error) {
+	err := utilwait.PollImmediate(50*time.Millisecond, 250*time.Millisecond, func() (bool, error) {
 		return atomic.LoadUint32(reloads) > expected, nil
 	})
-
+	// timeout error is expected here.
+	if err != nil && err != utilwait.ErrWaitTimeout {
+		return fmt.Errorf("unexpected error %v", err)
+	}
 	got := atomic.LoadUint32(reloads)
 	if got != expected {
 		return fmt.Errorf("expected %d, got %d", expected, got)
