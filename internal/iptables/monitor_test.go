@@ -334,10 +334,13 @@ func waitForReloads(reloads *uint32, expected uint32) error {
 }
 
 func waitForNoReload(reloads *uint32, expected uint32) error {
-	_ = utilwait.PollImmediate(50*time.Millisecond, 250*time.Millisecond, func() (bool, error) {
+	err := utilwait.PollImmediate(50*time.Millisecond, 250*time.Millisecond, func() (bool, error) {
 		return atomic.LoadUint32(reloads) > expected, nil
 	})
-
+	// timeout error is expected here.
+	if err != nil && err != utilwait.ErrWaitTimeout {
+		return fmt.Errorf("unexpected error %v", err)
+	}
 	got := atomic.LoadUint32(reloads)
 	if got != expected {
 		return fmt.Errorf("expected %d, got %d", expected, got)
