@@ -4,8 +4,8 @@
 REGISTRY                                     := eu.gcr.io/gardener-project/gardener
 APISERVER_PROXY_POD_WEBHOOK_IMAGE_REPOSITORY := $(REGISTRY)/apiserver-proxy-pod-webhook
 APISERVER_PROXY_SIDECAR_IMAGE_REPOSITORY     := $(REGISTRY)/apiserver-proxy
-REPO_ROOT                   := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-HACK_DIR                    := $(REPO_ROOT)/hack
+REPO_ROOT              	                     := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+HACK_DIR                                     := $(REPO_ROOT)/hack
 VERSION                                      := $(shell cat VERSION)
 EFFECTIVE_VERSION                            := $(VERSION)-$(shell git rev-parse HEAD)
 LD_FLAGS                                     := "-X github.com/gardener/apiserver-proxy/internal/version.version=$(EFFECTIVE_VERSION)"
