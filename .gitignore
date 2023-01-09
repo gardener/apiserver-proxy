@@ -1,1 +1,13 @@
 /bin
+/.kube-secrets
+/tmp/*
+/dev
+hack/tools/bin
+
+.vscode
+.idea
+.DS_Store
+.cache_ggshield
+
+TODO
+

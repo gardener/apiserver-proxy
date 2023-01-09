@@ -2,6 +2,9 @@ apiserver-proxy:
   template: 'default'
   base_definition:
     repo: ~
+    steps:
+      verify:
+        image: 'golang:1.19.4'
     traits:
       version:
         preprocess: 'inject-commit-hash'
@@ -21,7 +24,6 @@ apiserver-proxy:
             image: 'eu.gcr.io/gardener-project/gardener/apiserver-proxy-pod-webhook'
             dockerfile: 'cmd/Dockerfile'
             target: apiserver-proxy-pod-webhook
-    steps: ~
   jobs:
     head-update:
       traits:

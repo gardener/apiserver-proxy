@@ -5,9 +5,10 @@
 package netif
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	netlink "github.com/vishvananda/netlink"
-	reflect "reflect"
 )
 
 // MockHandle is a mock of Handle interface
