@@ -4,7 +4,7 @@ apiserver-proxy:
     repo: ~
     steps:
       verify:
-        image: 'golang:1.19.4'
+        image: 'golang:1.19.5'
     traits:
       version:
         preprocess: 'inject-commit-hash'
