@@ -19,11 +19,29 @@ apiserver-proxy:
             image: 'eu.gcr.io/gardener-project/gardener/apiserver-proxy'
             dockerfile: 'cmd/Dockerfile'
             target: apiserver-proxy
+            resource_labels:
+            - name: 'gardener.cloud/cve-categorisation'
+              value:
+                network_exposure: 'private'
+                authentication_enforced: false
+                user_interaction: 'end-user'
+                confidentiality_requirement: 'low'
+                integrity_requirement: 'high'
+                availability_requirement: 'high'
           apiserver-proxy-pod-webhook:
             registry: 'gcr-readwrite'
             image: 'eu.gcr.io/gardener-project/gardener/apiserver-proxy-pod-webhook'
             dockerfile: 'cmd/Dockerfile'
             target: apiserver-proxy-pod-webhook
+            resource_labels:
+            - name: 'gardener.cloud/cve-categorisation'
+              value:
+                network_exposure: 'private'
+                authentication_enforced: false
+                user_interaction: 'gardener-operator'
+                confidentiality_requirement: 'none'
+                integrity_requirement: 'low'
+                availability_requirement: 'low'
   jobs:
     head-update:
       traits:
