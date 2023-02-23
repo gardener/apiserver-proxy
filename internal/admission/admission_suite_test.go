@@ -91,7 +91,7 @@ var _ = BeforeSuite(func(done Done) {
 		Name:                    "foo",
 		NamespaceSelector:       &metav1.LabelSelector{},
 		ObjectSelector:          &metav1.LabelSelector{},
-		AdmissionReviewVersions: []string{"v1beta1"},
+		AdmissionReviewVersions: []string{"v1"},
 		Rules: []v1.RuleWithOperations{{
 			Operations: []v1.OperationType{v1.OperationAll},
 			Rule: v1.Rule{
