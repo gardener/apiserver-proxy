@@ -4,7 +4,7 @@ metadata:
   name: apiserver-proxy.networking.gardener.cloud
 webhooks:
 - admissionReviewVersions:
-  - v1beta1
+  - v1
   clientConfig:
     caBundle: LS0tLS1C
     url: https://localhost:10250/webhook/pod-apiserver-env
