@@ -6,9 +6,10 @@ package app
 import (
 	"time"
 
+	"github.com/vishvananda/netlink"
+
 	utiliptables "github.com/gardener/apiserver-proxy/internal/iptables"
 	"github.com/gardener/apiserver-proxy/internal/netif"
-	"github.com/vishvananda/netlink"
 )
 
 // ConfigParams lists the configuration options that can be provided to sidecar proxy

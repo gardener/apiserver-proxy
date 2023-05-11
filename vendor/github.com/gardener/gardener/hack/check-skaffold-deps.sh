@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2022 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+# Copyright 2022 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -47,8 +47,13 @@ function check() {
     sort |\
     uniq > "$path_actual_dependencies"
 
-  # always add vendor directory
+  # always add vendor directory and VERSION file
   echo "vendor" >> "$path_actual_dependencies"
+  echo "VERSION" >> "$path_actual_dependencies"
+
+  # sort dependencies
+  sort -o $path_current_skaffold_dependencies{,}
+  sort -o $path_actual_dependencies{,}
 
   echo -n ">> Checking defined dependencies in Skaffold config '$skaffold_config_name' for '$binary_name' in '$skaffold_file'..."
   if ! diff="$(diff "$path_current_skaffold_dependencies" "$path_actual_dependencies")"; then

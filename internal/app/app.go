@@ -6,18 +6,17 @@ package app
 import (
 	"context"
 	"fmt"
+	"net/netip"
 	"strings"
 	"time"
 
+	"github.com/vishvananda/netlink"
 	"golang.org/x/xerrors"
-
-	"net/netip"
+	"k8s.io/klog/v2"
+	"k8s.io/utils/exec"
 
 	utiliptables "github.com/gardener/apiserver-proxy/internal/iptables"
 	"github.com/gardener/apiserver-proxy/internal/netif"
-	"github.com/vishvananda/netlink"
-	"k8s.io/klog/v2"
-	"k8s.io/utils/exec"
 )
 
 // NewSidecarApp returns a new instance of SidecarApp by applying the specified config params.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2022 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+# Copyright 2022 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,12 +27,11 @@ clamp_mss_to_pmtu
 make kind-ha-single-zone-up
 
 # export all container logs and events after test execution
-trap "
-  ( export_logs 'gardener-local-ha-single-zone';
-    export_events_for_kind 'gardener-local-ha-single-zone'; export_events_for_shoots )
-  ( make kind-ha-single-zone-down )
-" EXIT
+trap '{
+  export_artifacts "gardener-local-ha-single-zone"
+  make kind-ha-single-zone-down
+}' EXIT
 
 make gardener-ha-single-zone-up
-make test-e2e-local-ha-single-zone PARALLEL_E2E_TESTS=10 
+make test-e2e-local-ha-single-zone PARALLEL_E2E_TESTS=10
 make gardener-ha-single-zone-down

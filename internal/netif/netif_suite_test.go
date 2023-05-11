@@ -9,10 +9,9 @@ import (
 	"syscall"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"github.com/golang/mock/gomock"
 	"github.com/vishvananda/netlink"
 )
 

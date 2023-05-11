@@ -8,14 +8,15 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gardener/apiserver-proxy/internal/admission"
-	"github.com/gardener/apiserver-proxy/internal/version"
 	flag "github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+
+	"github.com/gardener/apiserver-proxy/internal/admission"
+	"github.com/gardener/apiserver-proxy/internal/version"
 )
 
 var setupLog = ctrl.Log.WithName("setup")
