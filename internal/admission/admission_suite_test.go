@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,13 +24,9 @@ import (
 	"k8s.io/apiserver/pkg/authentication/user"
 	"k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 )
 
 var stopCtx, cancelFn = context.WithCancel(context.Background())
@@ -36,9 +34,9 @@ var stopCtx, cancelFn = context.WithCancel(context.Background())
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
 
-	RunSpecsWithDefaultAndCustomReporters(t,
+	RunSpecs(t,
 		"Webhook Suite",
-		[]Reporter{printer.NewlineReporter{}})
+	)
 }
 
 var (
@@ -104,7 +102,7 @@ var _ = BeforeSuite(func(done Done) {
 			Service: &v1.ServiceReference{
 				Name:      "webhook-test",
 				Namespace: "default",
-				Path:      pointer.StringPtr("/webhook/pod-apiserver-env"),
+				Path:      pointer.String("/webhook/pod-apiserver-env"),
 			},
 			CABundle: caCert,
 		},

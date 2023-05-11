@@ -9,11 +9,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/gardener/apiserver-proxy/internal/app"
-	"github.com/gardener/apiserver-proxy/internal/version"
 	flag "github.com/spf13/pflag"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+
+	"github.com/gardener/apiserver-proxy/internal/app"
+	"github.com/gardener/apiserver-proxy/internal/version"
 )
 
 func parseAndValidateFlags() *app.ConfigParams {
