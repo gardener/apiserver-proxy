@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 REGISTRY                                     := eu.gcr.io/gardener-project/gardener
-APISERVER_PROXY_POD_WEBHOOK_IMAGE_REPOSITORY := $(REGISTRY)/apiserver-proxy-pod-webhook
 APISERVER_PROXY_SIDECAR_IMAGE_REPOSITORY     := $(REGISTRY)/apiserver-proxy
 REPO_ROOT              	                     := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 HACK_DIR                                     := $(REPO_ROOT)/hack
@@ -23,13 +22,11 @@ include vendor/github.com/gardener/gardener/hack/tools.mk
 
 .PHONY: build
 build:
-	@CGO_ENABLED=0 GOARCH=$(GOARCH) GO111MODULE=on go build -mod=vendor -ldflags $(LD_FLAGS) -o bin/apiserver-proxy-pod-webhook ./cmd/apiserver-proxy-pod-webhook 
 	@CGO_ENABLED=0 GOARCH=$(GOARCH) GO111MODULE=on go build -mod=vendor -ldflags $(LD_FLAGS) -o bin/apiserver-proxy-sidecar     ./cmd/apiserver-proxy-sidecar
 
 .PHONY: docker-images
 docker-images:
 	@echo "Building docker images with version and tag $(EFFECTIVE_VERSION)"
-	@docker build --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(APISERVER_PROXY_POD_WEBHOOK_IMAGE_REPOSITORY):$(EFFECTIVE_VERSION) -f cmd/Dockerfile --target apiserver-proxy-pod-webhook .
 	@docker build --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(APISERVER_PROXY_SIDECAR_IMAGE_REPOSITORY):$(EFFECTIVE_VERSION)     -f cmd/Dockerfile --target apiserver-proxy .
 
 #####################################################################
