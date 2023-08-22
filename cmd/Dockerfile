@@ -53,11 +53,3 @@ COPY --from=apiserver-proxy-builder /volume /
 USER 0:0
 
 ENTRYPOINT ["/apiserver-proxy-sidecar"]
-
-#############      apiserver-proxy-pod-webhook      #############
-FROM gcr.io/distroless/static-debian11:nonroot AS apiserver-proxy-pod-webhook
-
-COPY --from=builder /go/src/github.com/gardener/apiserver-proxy/bin/apiserver-proxy-pod-webhook /apiserver-proxy-pod-webhook
-WORKDIR /
-
-ENTRYPOINT ["/apiserver-proxy-pod-webhook"]
