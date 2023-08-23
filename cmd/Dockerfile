@@ -21,12 +21,13 @@ COPY --from=builder /go/src/github.com/gardener/apiserver-proxy/bin/apiserver-pr
 RUN mkdir -p ./sbin ./lib ./usr/lib ./usr/lib/xtables ./tmp ./run ./etc/iproute2 \
     && cp -d /lib/ld-musl-* ./lib                                           && echo "package musl" \
     && cp -d /lib/libc.musl-* ./lib                                         && echo "package musl" \
-    && cp -d /usr/lib/libcap.* ./usr/lib                                    && echo "package libcap" \
-    && cp -d /usr/lib/libpsx.* ./usr/lib                                    && echo "package libcap" \
+    && cp -d /usr/lib/libcap.* ./usr/lib                                    && echo "package libcap2" \
+    && cp -d /usr/lib/libpsx.* ./usr/lib                                    && echo "package libcap2" \
     && cp -d /usr/lib/libbz2* ./usr/lib                                     && echo "package libbz2" \
-    && cp -d /usr/lib/libfts* ./usr/lib                                     && echo "package fts" \
+    && cp -d /usr/lib/libfts* ./usr/lib                                     && echo "package musl-fts" \
     && cp -d /usr/lib/liblzma* ./usr/lib                                    && echo "package xz-libs" \
     && cp -d /lib/libz.* ./lib                                              && echo "package zlib" \
+    && cp -d /usr/lib/libzstd.* ./lib                                       && echo "package zstd-libs" \
     && cp -d /usr/lib/libasm* ./usr/lib                                     && echo "package libelf" \
     && cp -d /usr/lib/libdw* ./usr/lib                                      && echo "package libelf" \
     && cp -d /usr/lib/libelf* ./usr/lib                                     && echo "package libelf" \
@@ -35,6 +36,7 @@ RUN mkdir -p ./sbin ./lib ./usr/lib ./usr/lib/xtables ./tmp ./run ./etc/iproute2
     && cp -d /etc/iproute2/* ./etc/iproute2                                 && echo "package iproute2-minimal" \
     && cp -d /usr/lib/libnftnl* ./usr/lib                                   && echo "package libnftnl" \
     && cp -d /etc/ethertypes ./etc                                          && echo "package iptables" \
+    && cp -d /etc/xtables.conf ./etc                                        && echo "package iptables" \
     && cp -d /sbin/iptables* ./sbin                                         && echo "package iptables" \
     && cp -d /sbin/xtables* ./sbin                                          && echo "package iptables" \
     && cp -d /usr/lib/libip4* ./usr/lib                                     && echo "package iptables" \
