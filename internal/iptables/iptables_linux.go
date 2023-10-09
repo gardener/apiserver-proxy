@@ -9,6 +9,7 @@ SPDX-License-Identifier: Apache-2.0
 package iptables
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -61,23 +62,23 @@ func grabIptablesLocks(lockfilePath string) (iptablesLocker, error) {
 		return nil, fmt.Errorf("failed to open iptables lock %s: %v", lockfilePath, err)
 	}
 
-	if err := wait.PollImmediate(200*time.Millisecond, 2*time.Second, func() (bool, error) {
+	if err := wait.PollUntilContextTimeout(context.Background(), 200*time.Millisecond, 2*time.Second, true, wait.ConditionWithContextFunc(func(ctx context.Context) (bool, error) {
 		if err := grabIptablesFileLock(l.lock16); err != nil {
 			return false, nil
 		}
 		return true, nil
-	}); err != nil {
+	})); err != nil {
 		return nil, fmt.Errorf("failed to acquire new iptables lock: %v", err)
 	}
 
 	// Roughly duplicate iptables 1.4.x xtables_lock() function.
-	if err := wait.PollImmediate(200*time.Millisecond, 2*time.Second, func() (bool, error) {
+	if err := wait.PollUntilContextTimeout(context.Background(), 200*time.Millisecond, 2*time.Second, true, wait.ConditionWithContextFunc(func(ctx context.Context) (bool, error) {
 		l.lock14, err = net.ListenUnix("unix", &net.UnixAddr{Name: "@xtables", Net: "unix"})
 		if err != nil {
 			return false, nil
 		}
 		return true, nil
-	}); err != nil {
+	})); err != nil {
 		return nil, fmt.Errorf("failed to acquire old iptables lock: %v", err)
 	}
 
