@@ -1072,8 +1072,8 @@ func TestRestoreAllGrabNewLock(t *testing.T) {
 	if err == nil {
 		t.Errorf("expected failure, got success instead")
 	}
-	if !strings.Contains(err.Error(), "failed to acquire new iptables lock: timed out waiting for the condition") {
-		t.Errorf("expected timeout error, got %v", err)
+	if !strings.Contains(err.Error(), "failed to acquire new iptables lock: context deadline exceeded") {
+		t.Errorf("expected context deadline exceeded error, got %v", err)
 	}
 }
 
@@ -1110,8 +1110,8 @@ func TestRestoreAllGrabOldLock(t *testing.T) {
 	if err == nil {
 		t.Errorf("expected failure, got success instead")
 	}
-	if !strings.Contains(err.Error(), "failed to acquire old iptables lock: timed out waiting for the condition") {
-		t.Errorf("expected timeout error, got %v", err)
+	if !strings.Contains(err.Error(), "failed to acquire old iptables lock: context deadline exceeded") {
+		t.Errorf("expected context deadline exceeded error, got %v", err)
 	}
 }
 
