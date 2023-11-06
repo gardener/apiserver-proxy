@@ -3,7 +3,7 @@ module github.com/gardener/apiserver-proxy
 go 1.21
 
 require (
-	github.com/gardener/gardener v1.82.1
+	github.com/gardener/gardener v1.83.0
 	github.com/golang/mock v1.6.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.27.10
