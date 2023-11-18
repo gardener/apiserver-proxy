@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2019 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
+# Copyright 2023 SAP SE or an SAP affiliate company. All rights reserved. This file is licensed under the Apache Software License, v. 2 except as noted otherwise in the LICENSE file
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,10 +16,5 @@
 
 set -e
 
-echo "> Install"
-
-LD_FLAGS="${LD_FLAGS:-$($(dirname $0)/get-build-ld-flags.sh)}"
-
-CGO_ENABLED=0 GOOS=$(go env GOOS) GOARCH=$(go env GOARCH) GO111MODULE=on \
-  go install -ldflags "$LD_FLAGS" \
-  $@
+repo_root="$(git rev-parse --show-toplevel)"
+$repo_root/hack/check-skaffold-deps.sh update
