@@ -8,7 +8,6 @@ import (
 
 	"github.com/vishvananda/netlink"
 
-	utiliptables "github.com/gardener/apiserver-proxy/internal/iptables"
 	"github.com/gardener/apiserver-proxy/internal/netif"
 )
 
@@ -25,15 +24,7 @@ type ConfigParams struct {
 
 // SidecarApp contains all the config required to run sidecar proxy.
 type SidecarApp struct {
-	iptables      utiliptables.Interface
-	iptablesRules []iptablesRule
-	params        *ConfigParams
-	netManager    netif.Manager
-	localIP       *netlink.Addr
-}
-
-type iptablesRule struct {
-	table utiliptables.Table
-	chain utiliptables.Chain
-	args  []string
+	params     *ConfigParams
+	netManager netif.Manager
+	localIP    *netlink.Addr
 }

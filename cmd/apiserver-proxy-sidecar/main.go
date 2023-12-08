@@ -30,11 +30,9 @@ func parseAndValidateFlags() *app.ConfigParams {
 	flag.CommandLine.AddGoFlagSet(cmd)
 
 	flag.StringVar(&params.Interface, "interface", "lo", "[optional] name of the interface to add address to.")
-	flag.DurationVar(&params.Interval, "sync-interval", time.Minute, "[optional] interval to check for iptables rules.")
-	flag.BoolVar(&params.SetupIptables, "setup-iptables", false,
-		"[optional] indicates whether iptables rules should be setup.")
+	flag.DurationVar(&params.Interval, "sync-interval", time.Minute, "[optional] interval to check for the added interface.")
 	flag.BoolVar(&params.Cleanup, "cleanup", false,
-		"[optional] indicates whether created interface and iptables should be removed on exit.")
+		"[optional] indicates whether created interface should be removed on exit.")
 	flag.BoolVar(&params.Daemon, "daemon", true,
 		"[optional] indicates if the sidecar should run as a daemon")
 	flag.StringVar(&params.IPAddress, "ip-address", "", "ip-address on which the proxy is listening (e.g. 1.2.3.4).")

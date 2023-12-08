@@ -7,15 +7,12 @@ import (
 	"context"
 	"fmt"
 	"net/netip"
-	"strings"
 	"time"
 
 	"github.com/vishvananda/netlink"
 	"golang.org/x/xerrors"
 	"k8s.io/klog/v2"
-	"k8s.io/utils/exec"
 
-	utiliptables "github.com/gardener/apiserver-proxy/internal/iptables"
 	"github.com/gardener/apiserver-proxy/internal/netif"
 )
 
@@ -40,56 +37,10 @@ func NewSidecarApp(params *ConfigParams) (*SidecarApp, error) {
 	return c, nil
 }
 
-// TeardownNetworking removes all custom iptables rules and network interface added by node-cache
+// TeardownNetworking removes the network interface added by apiserver-proxy
 func (c *SidecarApp) TeardownNetworking() error {
 	klog.Infof("Cleaning up")
-
-	err := c.netManager.RemoveIPAddress()
-
-	if c.params.SetupIptables {
-		for _, rule := range c.iptablesRules {
-			exists := true
-			for exists {
-				err := c.iptables.DeleteRule(rule.table, rule.chain, rule.args...)
-				if err != nil {
-					klog.Errorf("Error deleting iptables rule %v - %s", rule, err)
-				}
-				exists, _ = c.iptables.EnsureRule(utiliptables.Prepend, rule.table, rule.chain, rule.args...)
-			}
-			// Delete the rule one last time since EnsureRule creates the rule if it doesn't exist
-			err := c.iptables.DeleteRule(rule.table, rule.chain, rule.args...)
-			if err != nil {
-				klog.Errorf("Error deleting iptables rule %v - %s", rule, err)
-			}
-		}
-	}
-
-	return err
-}
-
-func (c *SidecarApp) getIPTables() utiliptables.Interface {
-	// using the localIPStr param since we need ip strings here
-	c.iptablesRules = append(c.iptablesRules, []iptablesRule{
-		// Match traffic destined for localIp:localPort and set the flows to be NOTRACKED, this skips connection tracking
-		{utiliptables.Table("raw"), utiliptables.ChainPrerouting, []string{"-p", "tcp", "-d", c.params.IPAddress,
-			"--dport", c.params.LocalPort, "-j", "NOTRACK"}},
-		// There are rules in filter table to allow tracked connections to be accepted. Since we skipped connection tracking,
-		// need these additional filter table rules.
-		{utiliptables.TableFilter, utiliptables.ChainInput, []string{"-p", "tcp", "-d", c.params.IPAddress,
-			"--dport", c.params.LocalPort, "-j", "ACCEPT"}},
-		// Match traffic from c.params.IPAddress:localPort and set the flows to be NOTRACKED, this skips connection tracking
-		{utiliptables.Table("raw"), utiliptables.ChainOutput, []string{"-p", "tcp", "-s", c.params.IPAddress,
-			"--sport", c.params.LocalPort, "-j", "NOTRACK"}},
-		// Additional filter table rules for traffic frpm c.params.IPAddress:localPort
-		{utiliptables.TableFilter, utiliptables.ChainOutput, []string{"-p", "tcp", "-s", c.params.IPAddress,
-			"--sport", c.params.LocalPort, "-j", "ACCEPT"}},
-		// Skip connection tracking for requests to apiserver-proxy that are locally generated, example - by hostNetwork pods
-		{utiliptables.Table("raw"), utiliptables.ChainOutput, []string{"-p", "tcp", "-d", c.params.IPAddress,
-			"--dport", c.params.LocalPort, "-j", "NOTRACK"}},
-	}...)
-	execer := exec.New()
-
-	return utiliptables.New(execer, utiliptables.ProtocolIPv4)
+	return c.netManager.RemoveIPAddress()
 }
 
 func (c *SidecarApp) runPeriodic(ctx context.Context) {
@@ -98,7 +49,7 @@ func (c *SidecarApp) runPeriodic(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			klog.Warningf("Exiting iptables/interface check goroutine")
+			klog.Warningf("Exiting interface check goroutine")
 
 			return
 		case <-tick.C:
@@ -108,29 +59,6 @@ func (c *SidecarApp) runPeriodic(ctx context.Context) {
 }
 
 func (c *SidecarApp) runChecks() {
-	if c.params.SetupIptables {
-		for _, rule := range c.iptablesRules {
-			exists, err := c.iptables.EnsureRule(utiliptables.Prepend, rule.table, rule.chain, rule.args...)
-
-			switch {
-			case exists:
-				// debug messages can be printed by including "debug" plugin in coreFile.
-				klog.V(2).Infof("iptables rule %v for apiserver-proxy-sidecar already exists", rule)
-
-				continue
-			case err == nil:
-				klog.Infof("Added back apiserver-proxy-sidecar rule - %v", rule)
-
-				continue
-			case isLockedErr(err):
-				// if we got here, either iptables check failed or adding rule back failed.
-				klog.Infof("Error checking/adding iptables rule %v, due to xtables lock in use, retrying in %v",
-					rule, c.params.Interval)
-			default:
-				klog.Errorf("Error adding iptables rule %v - %s", rule, err)
-			}
-		}
-	}
 
 	klog.V(2).Infoln("Ensuring ip address")
 
@@ -144,10 +72,6 @@ func (c *SidecarApp) runChecks() {
 // RunApp invokes the background checks and runs coreDNS as a cache
 func (c *SidecarApp) RunApp(ctx context.Context) {
 	c.netManager = netif.NewNetifManager(c.localIP, c.params.Interface)
-
-	if c.params.SetupIptables {
-		c.iptables = c.getIPTables()
-	}
 
 	if c.params.Cleanup {
 		defer func() {
@@ -168,8 +92,4 @@ func (c *SidecarApp) RunApp(ctx context.Context) {
 	}
 
 	klog.Infoln("Exiting... Bye!")
-}
-
-func isLockedErr(err error) bool {
-	return strings.Contains(err.Error(), "holding the xtables lock")
 }
