@@ -1,7 +1,5 @@
 apiserver-proxy:
-  template: 'default'
   base_definition:
-    repo: ~
     steps:
       verify:
         image: 'golang:1.21.5'
@@ -18,10 +16,9 @@ apiserver-proxy:
         oci-builder: docker-buildx
         platforms:
         - linux/amd64
-        - linux/arm64      
+        - linux/arm64
         dockerimages:
           apiserver-proxy:
-            registry: 'gcr-readwrite'
             image: 'eu.gcr.io/gardener-project/gardener/apiserver-proxy'
             dockerfile: 'cmd/Dockerfile'
             target: apiserver-proxy
