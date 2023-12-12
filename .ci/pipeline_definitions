@@ -1,12 +1,11 @@
 apiserver-proxy:
-  template: 'default'
   base_definition:
-    repo: ~
     steps:
       verify:
         image: 'golang:1.21.5'
     traits:
       component_descriptor:
+        ocm_repository: europe-docker.pkg.dev/gardener-project/snapshots
         component_labels:
         - name: 'cloud.gardener.cnudie/responsibles'
           value:
@@ -18,11 +17,10 @@ apiserver-proxy:
         oci-builder: docker-buildx
         platforms:
         - linux/amd64
-        - linux/arm64      
+        - linux/arm64
         dockerimages:
           apiserver-proxy:
-            registry: 'gcr-readwrite'
-            image: 'eu.gcr.io/gardener-project/gardener/apiserver-proxy'
+            image: europe-docker.pkg.dev/gardener-project/snapshots/gardener/apiserver-proxy
             dockerfile: 'cmd/Dockerfile'
             target: apiserver-proxy
             resource_labels:
@@ -38,6 +36,9 @@ apiserver-proxy:
     head-update:
       traits:
         draft_release: ~
+        component_descriptor:
+          ocm_repository_mappings:
+            - repository: europe-docker.pkg.dev/gardener-project/releases
     pull-request:
       traits:
         pull-request: ~
@@ -47,6 +48,8 @@ apiserver-proxy:
           preprocess: 'finalize'
         release:
           nextversion: 'bump_minor'
+        component_descriptor:
+          ocm_repository: europe-docker.pkg.dev/gardener-project/releases
         slack:
           default_channel: 'internal_scp_workspace'
           channel_cfgs:

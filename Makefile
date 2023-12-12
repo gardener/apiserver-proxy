@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2020 SAP SE or an SAP affiliate company and Gardener contributors
 # SPDX-License-Identifier: Apache-2.0
 
-REGISTRY                                     := eu.gcr.io/gardener-project/gardener
+REGISTRY                                     := europe-docker.pkg.dev/gardener-project/public/gardener
 APISERVER_PROXY_SIDECAR_IMAGE_REPOSITORY     := $(REGISTRY)/apiserver-proxy
 REPO_ROOT              	                     := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 HACK_DIR                                     := $(REPO_ROOT)/hack
