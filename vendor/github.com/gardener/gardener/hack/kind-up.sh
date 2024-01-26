@@ -18,6 +18,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+REGISTRY_CACHE=${CI:-false}
 CLUSTER_NAME=""
 PATH_CLUSTER_VALUES=""
 PATH_KUBECONFIG=""
@@ -99,7 +100,7 @@ setup_loopback_device() {
   fi
   LOOPBACK_DEVICE=$(ip address | grep LOOPBACK | sed "s/^[0-9]\+: //g" | awk '{print $1}' | sed "s/:$//g")
   LOOPBACK_IP_ADDRESSES=(127.0.0.10 127.0.0.11 127.0.0.12)
-  if [[ "$IPFAMILY" == "ipv6" ]]; then
+  if [[ "$IPFAMILY" == "ipv6" ]] || [[ "$IPFAMILY" == "dual" ]]; then
     LOOPBACK_IP_ADDRESSES+=(::10 ::11 ::12)
   fi
   echo "Checking loopback device ${LOOPBACK_DEVICE}..."
@@ -128,6 +129,7 @@ setup_containerd_registry_mirrors() {
     setup_containerd_registry_mirror $NODE "ghcr.io" "https://ghcr.io" "http://${REGISTRY_HOSTNAME}:5005"
     setup_containerd_registry_mirror $NODE "registry.k8s.io" "https://registry.k8s.io" "http://${REGISTRY_HOSTNAME}:5006"
     setup_containerd_registry_mirror $NODE "quay.io" "https://quay.io" "http://${REGISTRY_HOSTNAME}:5007"
+    setup_containerd_registry_mirror $NODE "europe-docker.pkg.dev" "https://europe-docker.pkg.dev" "http://${REGISTRY_HOSTNAME}:5008"
   done
 }
 
@@ -138,7 +140,7 @@ setup_containerd_registry_mirror() {
   UPSTREAM_SERVER=$3
   MIRROR_HOST=$4
 
-  echo "Setting up containerd registry mirror for host ${UPSTREAM_HOST}.";
+  echo "[${NODE}] Setting up containerd registry mirror for host ${UPSTREAM_HOST}.";
   REGISTRY_DIR="/etc/containerd/certs.d/${UPSTREAM_HOST}"
   docker exec "${NODE}" mkdir -p "${REGISTRY_DIR}"
   cat <<EOF | docker exec -i "${NODE}" cp /dev/stdin "${REGISTRY_DIR}/hosts.toml"
@@ -147,6 +149,22 @@ server = "${UPSTREAM_SERVER}"
 [host."${MIRROR_HOST}"]
   capabilities = ["pull", "resolve"]
 EOF
+}
+
+check_registry_cache_availability() {
+  local registry_cache_ip
+  local registry_cache_dns
+  if [[ "$REGISTRY_CACHE" != "true" ]]; then
+    return
+  fi
+  echo "Registry-cache enabled. Checking if registry-cache instances are deployed in prow cluster."
+  for registry_cache_dns in $(kubectl create -k "$(dirname "$0")/../example/gardener-local/registry-prow" --dry-run=client -o yaml | grep kube-system.svc.cluster.local | awk '{ print $2 }' | sed -e "s/^http:\/\///" -e "s/:5000$//"); do
+    registry_cache_ip=$(getent hosts "$registry_cache_dns" | awk '{ print $1 }')
+    if [[ "$registry_cache_ip" == "" ]]; then
+      echo "Unable to resolve IP of $registry_cache_dns in prow cluster. Disabling registry-cache."
+      REGISTRY_CACHE=false
+    fi
+  done
 }
 
 parse_flags "$@"
@@ -163,6 +181,9 @@ setup_kind_network
 
 if [[ "$IPFAMILY" == "ipv6" ]]; then
   ADDITIONAL_ARGS="$ADDITIONAL_ARGS --values $CHART/values-ipv6.yaml"
+fi
+if [[ "$IPFAMILY" == "dual" ]]; then
+  ADDITIONAL_ARGS="$ADDITIONAL_ARGS --values $CHART/values-dual.yaml"
 fi
 
 if [[ "$IPFAMILY" == "ipv6" ]] && [[ "$MULTI_ZONAL" == "true" ]]; then
@@ -236,7 +257,7 @@ if [[ "$CLUSTER_NAME" == "gardener-local2-ha-single-zone" ]]; then
 fi
 
 ip_address_field="IPAddress"
-if [[ "$IPFAMILY" == "ipv6" ]]; then
+if [[ "$IPFAMILY" == "ipv6" ]] || [[ "$IPFAMILY" == "dual" ]] ; then
   ip_address_field="GlobalIPv6Address"
 fi
 
@@ -262,7 +283,14 @@ kubectl -n kube-system get configmap coredns -ojson | \
 kubectl -n kube-system rollout restart deployment coredns
 
 if [[ "$DEPLOY_REGISTRY" == "true" ]]; then
-  kubectl apply -k "$(dirname "$0")/../example/gardener-local/registry" --server-side
+  check_registry_cache_availability
+  if [[ "$REGISTRY_CACHE" == "true" ]]; then
+    echo "Deploying local container registries in registry-cache configuration"
+    kubectl apply -k "$(dirname "$0")/../example/gardener-local/registry-prow" --server-side
+  else
+    echo "Deploying local container registries in default configuration"
+    kubectl apply -k "$(dirname "$0")/../example/gardener-local/registry" --server-side
+  fi
   kubectl wait --for=condition=available deployment -l app=registry -n registry --timeout 5m
 fi
 kubectl apply -k "$(dirname "$0")/../example/gardener-local/calico/$IPFAMILY" --server-side
