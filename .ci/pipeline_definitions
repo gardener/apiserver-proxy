@@ -63,4 +63,5 @@ apiserver-proxy:
           - linux/arm64
           dockerimages:
             apiserver-proxy:
+              image: europe-docker.pkg.dev/gardener-project/releases/gardener/apiserver-proxy
               tag_as_latest: true
