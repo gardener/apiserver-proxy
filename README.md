@@ -47,7 +47,7 @@ go run ./cmd/apiserver-proxy-sidecar --help
 ### Update dependencies
 
 ```shell
-make revendor
+make tidy
 ```
 
 ### Building container images
