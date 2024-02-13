@@ -6,20 +6,26 @@ Source: https://github.com/gardener/apiserver-proxy
 # --------------------------------------------------
 # source code
 
-Files: **
-Copyright: 2020 SAP SE or an SAP affiliate company and Gardener contributors
+Files: *
+Copyright: 2017-2024 SAP SE or an SAP affiliate company and Gardener contributors
 License: Apache-2.0
 
 # --------------------------------------------------
 # documentation
 
-Files:
-  docs/**
-  CONTRIBUTING.md
-  README.md
-Copyright: 2020 SAP SE or an SAP affiliate company and Gardener contributors
+Files: *.md
+Copyright: 2017-2024 SAP SE or an SAP affiliate company and Gardener contributors
 License: CC-BY-4.0
 
 # --------------------------------------------------
-# dependencies
+# third-party
 
+# --- copied source code ---
+# Files:
+# Copyright:
+# License:
+
+# --- vendor folder dependencies ---
+# Files:
+# Copyright:
+# License:

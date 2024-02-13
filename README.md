@@ -1,12 +1,11 @@
 # API Server proxy
+[![REUSE status](https://api.reuse.software/badge/github.com/gardener/apiserver-proxy)](https://api.reuse.software/info/github.com/gardener/apiserver-proxy)
 
 This repository contains the API Server proxy sidecar.
 
 The API Server proxy pod webhook is now included in the [Gardener Resource Manager](https://github.com/gardener/gardener/blob/master/docs/concepts/resource-manager.md#kubernetes-service-host-injection).
 
 ## API Server proxy sidecar
-
-[![reuse compliant](https://reuse.software/badge/reuse-compliant.svg)](https://reuse.software/)
 
 This component consists of `apiserver-proxy-sidecar` which runs on every `Node` in a `Shoot` cluster.
 It does the following:
