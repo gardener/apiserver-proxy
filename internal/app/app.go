@@ -45,6 +45,7 @@ func (c *SidecarApp) TeardownNetworking() error {
 
 func (c *SidecarApp) runPeriodic(ctx context.Context) {
 	tick := time.NewTicker(c.params.Interval)
+	defer tick.Stop()
 
 	for {
 		select {
