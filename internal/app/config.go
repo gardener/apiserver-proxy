@@ -13,13 +13,20 @@ import (
 
 // ConfigParams lists the configuration options that can be provided to sidecar proxy
 type ConfigParams struct {
-	LocalPort     string        // port to listen for dns requests
-	Interface     string        // Name of the interface to be created
-	Interval      time.Duration // specifies how often to run iptables rules check
-	SetupIptables bool          // enable iptables setup
-	Cleanup       bool          // clean the created interface and iptables
-	Daemon        bool          // run as a daemon
-	IPAddress     string        // IP address on which the proxy is listening
+	// LocalPort specifies the port to listen for DNS requests
+	LocalPort string
+	// Interface specifies the name of the interface to be created
+	Interface string
+	// Interval specifies how often to run iptables rules check
+	Interval time.Duration
+	// SetupIptables enables iptables setup
+	SetupIptables bool
+	// Cleanup specifies whether to clean the created interface and iptables
+	Cleanup bool
+	// Daemon specifies whether to run as daemon
+	Daemon bool
+	// IPAddress specifies the IP address on which the proxy is listening
+	IPAddress string
 }
 
 // SidecarApp contains all the config required to run sidecar proxy.
