@@ -18,11 +18,6 @@ import (
 )
 
 func parseAndValidateFlags() *app.ConfigParams {
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		flag.PrintDefaults()
-	}
-
 	params := &app.ConfigParams{}
 
 	cmd := goflag.CommandLine
@@ -56,10 +51,10 @@ func parseAndValidateFlags() *app.ConfigParams {
 func main() {
 	params := parseAndValidateFlags()
 
-	cache, err := app.NewSidecarApp(params)
+	app, err := app.NewSidecarApp(params)
 	if err != nil {
 		klog.Fatalf("Failed to create sidecar application, err %v", err)
 	}
 
-	cache.RunApp(signals.SetupSignalHandler())
+	app.RunApp(signals.SetupSignalHandler())
 }
