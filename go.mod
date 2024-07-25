@@ -1,6 +1,7 @@
 module github.com/gardener/apiserver-proxy
 
-go 1.22.1
+go 1.22.4
+
 toolchain go1.22.5
 
 require (
