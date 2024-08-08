@@ -4,6 +4,8 @@
 package netif
 
 import (
+	"errors"
+	"fmt"
 	"os"
 
 	"github.com/vishvananda/netlink"
@@ -15,6 +17,9 @@ type Handle interface {
 	AddrAdd(link netlink.Link, addr *netlink.Addr) error
 	AddrDel(link netlink.Link, addr *netlink.Addr) error
 	LinkByName(name string) (netlink.Link, error)
+	LinkSetUp(netlink.Link) error
+	LinkAdd(netlink.Link) error
+	LinkDel(netlink.Link) error
 }
 
 // Manager ensures that the dummy device is created or removed.
@@ -27,13 +32,14 @@ type Manager interface {
 // and removing of the dummy interface.
 type netifManagerDefault struct {
 	Handle
-	addr    *netlink.Addr
-	devName string
+	addr            *netlink.Addr
+	devName         string
+	manageInterface bool
 }
 
 // NewNetifManager returns a new instance of NetifManager with the ip address set to the provided values
 // These ip addresses will be bound to any devices created by this instance.
-func NewNetifManager(addr *netlink.Addr, devName string) Manager {
+func NewNetifManager(addr *netlink.Addr, devName string, manageDevice bool) Manager {
 	// Set scope to host only
 	addr.Scope = 0xfe
 
@@ -41,6 +47,7 @@ func NewNetifManager(addr *netlink.Addr, devName string) Manager {
 		&netlink.Handle{},
 		addr,
 		devName,
+		manageDevice,
 	}
 }
 
@@ -50,7 +57,21 @@ func (m *netifManagerDefault) EnsureIPAddress() error {
 
 	l, err := m.LinkByName(m.devName)
 	if err != nil {
-		return xerrors.Errorf("could not get loopback interface %v", err)
+		var linkNotFoundErr netlink.LinkNotFoundError
+		if !errors.As(err, &linkNotFoundErr) && !m.manageInterface {
+			return xerrors.Errorf("could not get interface %s: %v", m.devName, err)
+		}
+
+		attrs := netlink.LinkAttrs{
+			Name: m.devName,
+			MTU:  65535,
+		}
+		dummyLink := &netlink.Dummy{LinkAttrs: attrs}
+		err = m.LinkAdd(dummyLink)
+		if err != nil {
+			return xerrors.Errorf("could add dummy interface %v", err)
+		}
+		l = dummyLink
 	}
 
 	klog.V(6).Infof("Got interface %+v", l)
@@ -66,6 +87,13 @@ func (m *netifManagerDefault) EnsureIPAddress() error {
 
 	klog.Infof("Successfully added %q to %q", m.addr.String(), m.devName)
 
+	if m.manageInterface {
+		err = m.LinkSetUp(l)
+		if err != nil {
+			return fmt.Errorf("could set link up: %v", err)
+		}
+	}
+
 	return nil
 }
 
@@ -75,7 +103,18 @@ func (m *netifManagerDefault) RemoveIPAddress() error {
 
 	l, err := m.LinkByName(m.devName)
 	if err != nil {
-		return xerrors.Errorf("could not get loopback interface %v", err)
+		var linkNotFoundErr netlink.LinkNotFoundError
+		if !errors.As(err, &linkNotFoundErr) && !m.manageInterface {
+			return xerrors.Errorf("could not get interface %s: %v", m.devName, err)
+		}
+		attrs := netlink.LinkAttrs{
+			Name: m.devName,
+		}
+		dummyLink := &netlink.Dummy{LinkAttrs: attrs}
+		err = m.LinkDel(dummyLink)
+		if err != nil {
+			return xerrors.Errorf("could add dummy interface %v", err)
+		}
 	}
 
 	klog.V(6).Infof("Got interface %+v", l)

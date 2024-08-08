@@ -9,10 +9,10 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/vishvananda/netlink"
+	gomock "go.uber.org/mock/gomock"
 )
 
 func TestNetif(t *testing.T) {
@@ -23,14 +23,15 @@ func TestNetif(t *testing.T) {
 var _ = Describe("Manager", func() {
 
 	var (
-		ctrl          *gomock.Controller
-		mh            *MockHandle
-		addr          *netlink.Addr
-		interfaceName string
-		manager       Manager
-		dm            *netifManagerDefault
-		dummy         *netlink.Dummy
-		ip            = "192.168.0.3"
+		ctrl            *gomock.Controller
+		mh              *MockHandle
+		addr            *netlink.Addr
+		interfaceName   string
+		manageInterface bool
+		manager         Manager
+		dm              *netifManagerDefault
+		dummy           *netlink.Dummy
+		ip              = "192.168.0.3"
 	)
 
 	BeforeEach(func() {
@@ -54,7 +55,7 @@ var _ = Describe("Manager", func() {
 	})
 
 	JustBeforeEach(func() {
-		manager = NewNetifManager(addr, interfaceName)
+		manager = NewNetifManager(addr, interfaceName, manageInterface)
 		dm = manager.(*netifManagerDefault)
 		// override the default handler
 		dm.Handle = mh

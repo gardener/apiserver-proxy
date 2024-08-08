@@ -72,7 +72,7 @@ func (c *SidecarApp) runChecks() {
 
 // RunApp invokes the background checks and runs coreDNS as a cache
 func (c *SidecarApp) RunApp(ctx context.Context) {
-	c.netManager = netif.NewNetifManager(c.localIP, c.params.Interface)
+	c.netManager = netif.NewNetifManager(c.localIP, c.params.Interface, c.params.ManageInterface)
 
 	if c.params.Cleanup {
 		defer func() {

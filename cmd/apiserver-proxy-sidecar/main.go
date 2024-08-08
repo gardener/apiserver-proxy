@@ -32,6 +32,7 @@ func parseAndValidateFlags() *app.ConfigParams {
 		"[optional] indicates if the sidecar should run as a daemon")
 	flag.StringVar(&params.IPAddress, "ip-address", "", "ip-address on which the proxy is listening (e.g. 1.2.3.4).")
 	flag.StringVar(&params.LocalPort, "port", "9443", "[optional] port on which the proxy is listening.")
+	flag.BoolVar(&params.ManageInterface, "manage-interface", false, "[optional] indicates wether the interface should be created/deleted by the app")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s (%s):\n", os.Args[0], version.Version())
