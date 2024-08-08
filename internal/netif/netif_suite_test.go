@@ -37,12 +37,12 @@ var _ = Describe("Manager", func() {
 	BeforeEach(func() {
 		addr, _ = netlink.ParseAddr(ip + "/32")
 		interfaceName = "foo"
+		manageInterface = false
 		ctrl = gomock.NewController(GinkgoT())
 		mh = NewMockHandle(ctrl)
 		dummy = &netlink.Dummy{
 			LinkAttrs: netlink.LinkAttrs{Name: interfaceName},
 		}
-
 	})
 
 	AfterEach(func() {
@@ -152,8 +152,74 @@ var _ = Describe("Manager", func() {
 			Expect(err).To(HaveOccurred())
 		})
 
-		Context("LinkByName succeeds", func() {
+		Context("LinkByName errors but manageInterface is true", func() {
+			BeforeEach(func() {
+				mh.EXPECT().
+					LinkByName(gomock.Eq("foo")).
+					Return(nil, netlink.LinkNotFoundError{}).
+					Times(1)
 
+				mh.EXPECT().
+					LinkAdd(gomock.Any()).
+					Return(nil).
+					Times(1)
+
+				manageInterface = true
+			})
+
+			It("should return error when adding ip address", func() {
+				mh.EXPECT().
+					AddrAdd(gomock.Not(gomock.Eq(dummy)), gomock.Eq(addr)).
+					Return(fmt.Errorf("err")).
+					Times(1)
+
+				err := manager.EnsureIPAddress()
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("should return already exists error", func() {
+				mh.EXPECT().
+					AddrAdd(gomock.Not(gomock.Eq(dummy)), gomock.Eq(addr)).
+					Return(syscall.EEXIST).
+					Times(1)
+
+				err := manager.EnsureIPAddress()
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("should return no error when deleting link", func() {
+				mh.EXPECT().
+					AddrAdd(gomock.Not(gomock.Eq(dummy)), gomock.Eq(addr)).
+					Return(nil).
+					Times(1)
+
+				mh.EXPECT().
+					LinkSetUp(gomock.Not(gomock.Eq(dummy))).
+					Return(nil).
+					Times(1)
+
+				err := manager.EnsureIPAddress()
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("should return error when set up of link fails", func() {
+				mh.EXPECT().
+					AddrAdd(gomock.Not(gomock.Eq(dummy)), gomock.Eq(addr)).
+					Return(nil).
+					Times(1)
+
+				mh.EXPECT().
+					LinkSetUp(gomock.Not(gomock.Eq(dummy))).
+					Return(fmt.Errorf("err")).
+					Times(1)
+
+				err := manager.EnsureIPAddress()
+				Expect(err).To(HaveOccurred())
+			})
+
+		})
+
+		Context("LinkByName succeeds", func() {
 			BeforeEach(func() {
 				mh.EXPECT().
 					LinkByName(gomock.Eq("foo")).
