@@ -5,13 +5,13 @@ go 1.22.4
 toolchain go1.22.5
 
 require (
-	github.com/gardener/gardener v1.100.0
+	github.com/gardener/gardener v1.101.1
 	github.com/golang/mock v1.6.0
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.33.1
+	github.com/onsi/gomega v1.34.0
 	github.com/spf13/pflag v1.0.5
 	github.com/vishvananda/netlink v1.0.0
-	golang.org/x/tools v0.23.0
+	golang.org/x/tools v0.24.0
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2
 	k8s.io/klog/v2 v2.120.1
 	sigs.k8s.io/controller-runtime v0.17.5
@@ -54,12 +54,12 @@ require (
 	go.uber.org/mock v0.4.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/mod v0.19.0 // indirect
-	golang.org/x/net v0.27.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.22.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
-	google.golang.org/protobuf v1.34.0 // indirect
+	golang.org/x/mod v0.20.0 // indirect
+	golang.org/x/net v0.28.0 // indirect
+	golang.org/x/sync v0.8.0 // indirect
+	golang.org/x/sys v0.23.0 // indirect
+	golang.org/x/text v0.17.0 // indirect
+	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
