@@ -27,8 +27,6 @@ type ConfigParams struct {
 	Daemon bool
 	// IPAddress specifies the IP address on which the proxy is listening
 	IPAddress string
-	// ManageInterface specifies if the interface should be managed by the sidecar.
-	ManageInterface bool
 }
 
 // SidecarApp contains all the config required to run sidecar proxy.

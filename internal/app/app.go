@@ -40,7 +40,11 @@ func NewSidecarApp(params *ConfigParams) (*SidecarApp, error) {
 // TeardownNetworking removes the network interface added by apiserver-proxy
 func (c *SidecarApp) TeardownNetworking() error {
 	klog.Infof("Cleaning up")
-	return c.netManager.RemoveIPAddress()
+	err := c.netManager.RemoveIPAddress()
+	if err != nil {
+		return err
+	}
+	return c.netManager.CleanupDevice()
 }
 
 func (c *SidecarApp) runPeriodic(ctx context.Context) {
@@ -72,7 +76,7 @@ func (c *SidecarApp) runChecks() {
 
 // RunApp invokes the background checks and runs coreDNS as a cache
 func (c *SidecarApp) RunApp(ctx context.Context) {
-	c.netManager = netif.NewNetifManager(c.localIP, c.params.Interface, c.params.ManageInterface)
+	c.netManager = netif.NewNetifManager(c.localIP, c.params.Interface)
 
 	if c.params.Cleanup {
 		defer func() {

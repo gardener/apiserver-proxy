@@ -5,7 +5,6 @@ package netif
 
 import (
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/vishvananda/netlink"
@@ -26,20 +25,20 @@ type Handle interface {
 type Manager interface {
 	EnsureIPAddress() error
 	RemoveIPAddress() error
+	CleanupDevice() error
 }
 
 // netifManagerDefault is the default implementation handling creating
 // and removing of the dummy interface.
 type netifManagerDefault struct {
 	Handle
-	addr            *netlink.Addr
-	devName         string
-	manageInterface bool
+	addr    *netlink.Addr
+	devName string
 }
 
 // NewNetifManager returns a new instance of NetifManager with the ip address set to the provided values
 // These ip addresses will be bound to any devices created by this instance.
-func NewNetifManager(addr *netlink.Addr, devName string, manageDevice bool) Manager {
+func NewNetifManager(addr *netlink.Addr, devName string) Manager {
 	// Set scope to host only
 	addr.Scope = 0xfe
 
@@ -47,7 +46,6 @@ func NewNetifManager(addr *netlink.Addr, devName string, manageDevice bool) Mana
 		&netlink.Handle{},
 		addr,
 		devName,
-		manageDevice,
 	}
 }
 
@@ -58,19 +56,24 @@ func (m *netifManagerDefault) EnsureIPAddress() error {
 	l, err := m.LinkByName(m.devName)
 	if err != nil {
 		var linkNotFoundErr netlink.LinkNotFoundError
-		if !errors.As(err, &linkNotFoundErr) && !m.manageInterface {
-			return xerrors.Errorf("could not get interface %s: %v", m.devName, err)
+		if !errors.As(err, &linkNotFoundErr) {
+			return xerrors.Errorf("could not get interface %s:\n%v", m.devName, err)
 		}
 
 		attrs := netlink.LinkAttrs{
 			Name: m.devName,
-			MTU:  65535,
 		}
 		dummyLink := &netlink.Dummy{LinkAttrs: attrs}
 		err = m.LinkAdd(dummyLink)
 		if err != nil {
-			return xerrors.Errorf("could add dummy interface %v", err)
+			return xerrors.Errorf("could add dummy interface %s:\n%v", m.devName, err)
 		}
+
+		err = m.LinkSetUp(dummyLink)
+		if err != nil {
+			return xerrors.Errorf("could set interface %s up:\n%v", m.devName, err)
+		}
+
 		l = dummyLink
 	}
 
@@ -87,13 +90,6 @@ func (m *netifManagerDefault) EnsureIPAddress() error {
 
 	klog.Infof("Successfully added %q to %q", m.addr.String(), m.devName)
 
-	if m.manageInterface {
-		err = m.LinkSetUp(l)
-		if err != nil {
-			return fmt.Errorf("could set link up: %v", err)
-		}
-	}
-
 	return nil
 }
 
@@ -103,18 +99,7 @@ func (m *netifManagerDefault) RemoveIPAddress() error {
 
 	l, err := m.LinkByName(m.devName)
 	if err != nil {
-		var linkNotFoundErr netlink.LinkNotFoundError
-		if !errors.As(err, &linkNotFoundErr) && !m.manageInterface {
-			return xerrors.Errorf("could not get interface %s: %v", m.devName, err)
-		}
-		attrs := netlink.LinkAttrs{
-			Name: m.devName,
-		}
-		dummyLink := &netlink.Dummy{LinkAttrs: attrs}
-		err = m.LinkDel(dummyLink)
-		if err != nil {
-			return xerrors.Errorf("could add dummy interface %v", err)
-		}
+		return xerrors.Errorf("could not get interface %s:\n%v", m.devName, err)
 	}
 
 	klog.V(6).Infof("Got interface %+v", l)
@@ -130,5 +115,22 @@ func (m *netifManagerDefault) RemoveIPAddress() error {
 
 	klog.Infof("Successfully removed %q from %q", m.addr.String(), m.devName)
 
+	return nil
+}
+
+func (m *netifManagerDefault) CleanupDevice() error {
+	link, err := netlink.LinkByName(m.devName)
+	if err != nil {
+		var linkNotFoundErr netlink.LinkNotFoundError
+		if !errors.As(err, &linkNotFoundErr) {
+			return xerrors.Errorf("could not get interface %s:\n%v", m.devName, err)
+		}
+		// link already gone
+		return nil
+	}
+	err = netlink.LinkDel(link)
+	if err != nil {
+		return xerrors.Errorf("could not delete interface %s:\n%v", m.devName, err)
+	}
 	return nil
 }
