@@ -60,10 +60,11 @@ func (m *netifManagerDefault) EnsureIPAddress() error {
 			return xerrors.Errorf("could not get interface %s:\n%v", m.devName, err)
 		}
 
-		attrs := netlink.LinkAttrs{
-			Name: m.devName,
+		dummyLink := &netlink.Dummy{
+			LinkAttrs: netlink.LinkAttrs{
+				Name: m.devName,
+			},
 		}
-		dummyLink := &netlink.Dummy{LinkAttrs: attrs}
 		err = m.LinkAdd(dummyLink)
 		if err != nil {
 			return xerrors.Errorf("could add dummy interface %s:\n%v", m.devName, err)
