@@ -9,10 +9,10 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/vishvananda/netlink"
+	gomock "go.uber.org/mock/gomock"
 )
 
 func TestNetif(t *testing.T) {
@@ -41,7 +41,6 @@ var _ = Describe("Manager", func() {
 		dummy = &netlink.Dummy{
 			LinkAttrs: netlink.LinkAttrs{Name: interfaceName},
 		}
-
 	})
 
 	AfterEach(func() {
@@ -151,8 +150,73 @@ var _ = Describe("Manager", func() {
 			Expect(err).To(HaveOccurred())
 		})
 
-		Context("LinkByName succeeds", func() {
+		Context("LinkByName errors with LinkNotFoundError", func() {
+			BeforeEach(func() {
+				mh.EXPECT().
+					LinkByName(gomock.Eq("foo")).
+					Return(dummy, netlink.LinkNotFoundError{}).
+					Times(1)
 
+			})
+
+			It("should return error when adding ip address", func() {
+				mh.EXPECT().
+					LinkAdd(gomock.Any()).
+					Return(nil).
+					Times(1)
+
+				mh.EXPECT().
+					LinkSetUp(gomock.Any()).
+					Return(nil).
+					Times(1)
+
+				mh.EXPECT().
+					AddrAdd(gomock.Eq(dummy), gomock.Eq(addr)).
+					Return(fmt.Errorf("err")).
+					Times(1)
+
+				err := manager.EnsureIPAddress()
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("should return already exists error", func() {
+				mh.EXPECT().
+					LinkAdd(gomock.Any()).
+					Return(nil).
+					Times(1)
+
+				mh.EXPECT().
+					LinkSetUp(gomock.Any()).
+					Return(nil).
+					Times(1)
+
+				mh.EXPECT().
+					AddrAdd(gomock.Eq(dummy), gomock.Eq(addr)).
+					Return(syscall.EEXIST).
+					Times(1)
+
+				err := manager.EnsureIPAddress()
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("should return error when set up of link fails", func() {
+				mh.EXPECT().
+					LinkAdd(gomock.Any()).
+					Return(nil).
+					Times(1)
+
+				mh.EXPECT().
+					LinkSetUp(gomock.Any()).
+					Return(fmt.Errorf("err")).
+					Times(1)
+
+				err := manager.EnsureIPAddress()
+				Expect(err).To(HaveOccurred())
+			})
+
+		})
+
+		Context("LinkByName succeeds", func() {
 			BeforeEach(func() {
 				mh.EXPECT().
 					LinkByName(gomock.Eq("foo")).

@@ -40,7 +40,11 @@ func NewSidecarApp(params *ConfigParams) (*SidecarApp, error) {
 // TeardownNetworking removes the network interface added by apiserver-proxy
 func (c *SidecarApp) TeardownNetworking() error {
 	klog.Infof("Cleaning up")
-	return c.netManager.RemoveIPAddress()
+	err := c.netManager.RemoveIPAddress()
+	if err != nil {
+		return err
+	}
+	return c.netManager.CleanupDevice()
 }
 
 func (c *SidecarApp) runPeriodic(ctx context.Context) {

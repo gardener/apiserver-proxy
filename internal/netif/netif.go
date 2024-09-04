@@ -4,6 +4,7 @@
 package netif
 
 import (
+	"errors"
 	"os"
 
 	"github.com/vishvananda/netlink"
@@ -15,12 +16,16 @@ type Handle interface {
 	AddrAdd(link netlink.Link, addr *netlink.Addr) error
 	AddrDel(link netlink.Link, addr *netlink.Addr) error
 	LinkByName(name string) (netlink.Link, error)
+	LinkSetUp(netlink.Link) error
+	LinkAdd(netlink.Link) error
+	LinkDel(netlink.Link) error
 }
 
 // Manager ensures that the dummy device is created or removed.
 type Manager interface {
 	EnsureIPAddress() error
 	RemoveIPAddress() error
+	CleanupDevice() error
 }
 
 // netifManagerDefault is the default implementation handling creating
@@ -50,7 +55,27 @@ func (m *netifManagerDefault) EnsureIPAddress() error {
 
 	l, err := m.LinkByName(m.devName)
 	if err != nil {
-		return xerrors.Errorf("could not get loopback interface %v", err)
+		var linkNotFoundErr netlink.LinkNotFoundError
+		if !errors.As(err, &linkNotFoundErr) {
+			return xerrors.Errorf("could not get interface %s:\n%v", m.devName, err)
+		}
+
+		dummyLink := &netlink.Dummy{
+			LinkAttrs: netlink.LinkAttrs{
+				Name: m.devName,
+			},
+		}
+		err = m.LinkAdd(dummyLink)
+		if err != nil {
+			return xerrors.Errorf("could add dummy interface %s:\n%v", m.devName, err)
+		}
+
+		err = m.LinkSetUp(dummyLink)
+		if err != nil {
+			return xerrors.Errorf("could set interface %s up:\n%v", m.devName, err)
+		}
+
+		l = dummyLink
 	}
 
 	klog.V(6).Infof("Got interface %+v", l)
@@ -75,7 +100,7 @@ func (m *netifManagerDefault) RemoveIPAddress() error {
 
 	l, err := m.LinkByName(m.devName)
 	if err != nil {
-		return xerrors.Errorf("could not get loopback interface %v", err)
+		return xerrors.Errorf("could not get interface %s:\n%v", m.devName, err)
 	}
 
 	klog.V(6).Infof("Got interface %+v", l)
@@ -91,5 +116,22 @@ func (m *netifManagerDefault) RemoveIPAddress() error {
 
 	klog.Infof("Successfully removed %q from %q", m.addr.String(), m.devName)
 
+	return nil
+}
+
+func (m *netifManagerDefault) CleanupDevice() error {
+	link, err := netlink.LinkByName(m.devName)
+	if err != nil {
+		var linkNotFoundErr netlink.LinkNotFoundError
+		if !errors.As(err, &linkNotFoundErr) {
+			return xerrors.Errorf("could not get interface %s:\n%v", m.devName, err)
+		}
+		// link already gone
+		return nil
+	}
+	err = netlink.LinkDel(link)
+	if err != nil {
+		return xerrors.Errorf("could not delete interface %s:\n%v", m.devName, err)
+	}
 	return nil
 }
