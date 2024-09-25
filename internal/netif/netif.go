@@ -12,7 +12,19 @@ import (
 	"k8s.io/klog/v2"
 )
 
+// copied from golang.org/x/sys/unix constants
+const (
+	// copied from RT_TABLE_LOCAL
+	// Also visible in /etc/iproute2/rt_tables file on linux hosts
+	localRoutingTableId int = 0xff
+	// copied from RT_SCOPE_HOST
+	// Also visible in /etc/iproute2/rt_scopes file on linux hosts
+	hostScopeId int = 0xfe
+)
+
 type Handle interface {
+	RouteAdd(route *netlink.Route) error
+	RouteDel(route *netlink.Route) error
 	AddrAdd(link netlink.Link, addr *netlink.Addr) error
 	AddrDel(link netlink.Link, addr *netlink.Addr) error
 	LinkByName(name string) (netlink.Link, error)
@@ -81,14 +93,28 @@ func (m *netifManagerDefault) EnsureIPAddress() error {
 	klog.V(6).Infof("Got interface %+v", l)
 
 	if err := m.AddrAdd(l, m.addr); err != nil {
-		if os.IsExist(err) {
-			klog.V(4).Infof("Address %q already exists. Skipping", m.addr.String())
-			return nil
+		if !os.IsExist(err) {
+			return xerrors.Errorf("could not add IPV4 addresses %v", err)
 		}
-
-		return xerrors.Errorf("could not add IPV4 addresses %v", err)
+		klog.V(4).Infof("Address %q already exists.", m.addr.String())
 	}
 
+	// loopback device adds new ip addresses to the local routing table by default.
+	// If we are using a different interface, we need to do the updates ourself
+	if l.Attrs().Name != "lo" {
+		route := &netlink.Route{
+			LinkIndex: l.Attrs().Index,
+			Table:     localRoutingTableId,
+			Dst:       m.addr.IPNet,
+			Scope:     netlink.Scope(hostScopeId),
+		}
+		if err = m.RouteAdd(route); err != nil {
+			if !os.IsExist(err) {
+				return xerrors.Errorf("could not add route for %s to interface %s:\n%v", m.addr, m.devName, err)
+			}
+			klog.V(4).Infof("Route for %q already exists", m.addr.String())
+		}
+	}
 	klog.Infof("Successfully added %q to %q", m.addr.String(), m.devName)
 
 	return nil
@@ -105,6 +131,16 @@ func (m *netifManagerDefault) RemoveIPAddress() error {
 
 	klog.V(6).Infof("Got interface %+v", l)
 
+	if m.devName != "lo" {
+		route := localRoute(l.Attrs().Index, m.addr)
+		if err := m.RouteDel(route); err != nil {
+			if !os.IsNotExist(err) {
+				return xerrors.Errorf("could not remove route for %s from interface %s:\n%v", m.addr, m.devName, err)
+			}
+			klog.V(4).Infof("Route for %q already removed. Skipping", m.addr.String())
+		}
+	}
+
 	if err := m.AddrDel(l, m.addr); err != nil {
 		if os.IsNotExist(err) {
 			klog.V(4).Infof("Address %q already removed. Skipping", m.addr.String())
@@ -117,6 +153,16 @@ func (m *netifManagerDefault) RemoveIPAddress() error {
 	klog.Infof("Successfully removed %q from %q", m.addr.String(), m.devName)
 
 	return nil
+}
+
+func localRoute(linkIndex int, addr *netlink.Addr) *netlink.Route {
+	return &netlink.Route{
+		LinkIndex: linkIndex,
+		Table:     localRoutingTableId,
+		Dst:       addr.IPNet,
+		Src:       addr.IP,
+		Scope:     netlink.Scope(hostScopeId),
+	}
 }
 
 func (m *netifManagerDefault) CleanupDevice() error {
