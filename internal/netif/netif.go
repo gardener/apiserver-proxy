@@ -8,18 +8,16 @@ import (
 	"os"
 
 	"github.com/vishvananda/netlink"
+	"golang.org/x/sys/unix"
 	"golang.org/x/xerrors"
 	"k8s.io/klog/v2"
 )
 
-// copied from golang.org/x/sys/unix constants
 const (
-	// copied from RT_TABLE_LOCAL
 	// Also visible in /etc/iproute2/rt_tables file on linux hosts
-	localRoutingTableId int = 0xff
-	// copied from RT_SCOPE_HOST
+	localRoutingTableId int = unix.RT_TABLE_LOCAL
 	// Also visible in /etc/iproute2/rt_scopes file on linux hosts
-	hostScopeId int = 0xfe
+	hostScopeId int = unix.RT_SCOPE_HOST
 )
 
 type Handle interface {
@@ -102,12 +100,7 @@ func (m *netifManagerDefault) EnsureIPAddress() error {
 	// loopback device adds new ip addresses to the local routing table by default.
 	// If we are using a different interface, we need to do the updates ourself
 	if l.Attrs().Name != "lo" {
-		route := &netlink.Route{
-			LinkIndex: l.Attrs().Index,
-			Table:     localRoutingTableId,
-			Dst:       m.addr.IPNet,
-			Scope:     netlink.Scope(hostScopeId),
-		}
+		route := localRoute(l.Attrs().Index, m.addr)
 		if err = m.RouteAdd(route); err != nil {
 			if !os.IsExist(err) {
 				return xerrors.Errorf("could not add route for %s to interface %s:\n%v", m.addr, m.devName, err)
@@ -161,6 +154,7 @@ func localRoute(linkIndex int, addr *netlink.Addr) *netlink.Route {
 		Table:     localRoutingTableId,
 		Dst:       addr.IPNet,
 		Src:       addr.IP,
+		Type:      unix.RTN_LOCAL,
 		Scope:     netlink.Scope(hostScopeId),
 	}
 }
