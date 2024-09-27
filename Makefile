@@ -29,7 +29,7 @@ build:
 .PHONY: docker-images
 docker-images:
 	@echo "Building docker images with version and tag $(EFFECTIVE_VERSION)"
-	@docker build --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(APISERVER_PROXY_SIDECAR_IMAGE_REPOSITORY):$(EFFECTIVE_VERSION)     -f cmd/Dockerfile --target apiserver-proxy .
+	@docker build --build-arg EFFECTIVE_VERSION=$(EFFECTIVE_VERSION) -t $(APISERVER_PROXY_SIDECAR_IMAGE_REPOSITORY):$(EFFECTIVE_VERSION) --platform=linux/$(GOARCH)    -f cmd/Dockerfile --target apiserver-proxy .
 
 #####################################################################
 # Rules for verification, formatting, linting, testing and cleaning #

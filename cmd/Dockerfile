@@ -1,9 +1,10 @@
 #############      builder              #############
-FROM golang:1.23.1 AS builder
+FROM --platform=${BUILDPLATFORM} golang:1.23.1 AS builder
 
 WORKDIR /go/src/github.com/gardener/apiserver-proxy
 COPY . .
 
+ARG BUILDPLATFORM
 ARG TARGETARCH
 ARG EFFECTIVE_VERSION
 
