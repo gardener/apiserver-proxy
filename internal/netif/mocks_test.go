@@ -124,6 +124,34 @@ func (mr *MockHandleMockRecorder) LinkSetUp(arg0 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LinkSetUp", reflect.TypeOf((*MockHandle)(nil).LinkSetUp), arg0)
 }
 
+// RouteAdd mocks base method.
+func (m *MockHandle) RouteAdd(route *netlink.Route) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RouteAdd", route)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RouteAdd indicates an expected call of RouteAdd.
+func (mr *MockHandleMockRecorder) RouteAdd(route any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RouteAdd", reflect.TypeOf((*MockHandle)(nil).RouteAdd), route)
+}
+
+// RouteDel mocks base method.
+func (m *MockHandle) RouteDel(route *netlink.Route) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RouteDel", route)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RouteDel indicates an expected call of RouteDel.
+func (mr *MockHandleMockRecorder) RouteDel(route any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RouteDel", reflect.TypeOf((*MockHandle)(nil).RouteDel), route)
+}
+
 // MockManager is a mock of Manager interface.
 type MockManager struct {
 	ctrl     *gomock.Controller
@@ -145,6 +173,20 @@ func NewMockManager(ctrl *gomock.Controller) *MockManager {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
+}
+
+// CleanupDevice mocks base method.
+func (m *MockManager) CleanupDevice() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CleanupDevice")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CleanupDevice indicates an expected call of CleanupDevice.
+func (mr *MockManagerMockRecorder) CleanupDevice() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CleanupDevice", reflect.TypeOf((*MockManager)(nil).CleanupDevice))
 }
 
 // EnsureIPAddress mocks base method.
