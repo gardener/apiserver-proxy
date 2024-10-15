@@ -11,3 +11,5 @@ hack/tools/bin
 
 TODO
 
+# gosec
+gosec-report.sarif
