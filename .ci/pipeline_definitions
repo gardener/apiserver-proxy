@@ -1,5 +1,12 @@
 apiserver-proxy:
   base_definition:
+    repo:
+      source_labels:
+      - name: cloud.gardener.cnudie/dso/scanning-hints/source_analysis/v1
+        value:
+          policy: skip
+          comment: |
+            we use gosec for sast scanning. See attached log.
     steps:
       verify:
         image: 'golang:1.23.1'
@@ -48,6 +55,17 @@ apiserver-proxy:
           preprocess: 'finalize'
         release:
           nextversion: 'bump_minor'
+          assets:
+          - type: build-step-log
+            step_name: verify
+            purposes:
+            - lint
+            - sast
+            - gosec
+            comment: |
+                we use gosec (linter) for SAST scans
+                see: https://github.com/securego/gosec
+                enabled by https://github.com/gardener/apiserver-proxy/pull/143
         component_descriptor:
           ocm_repository: europe-docker.pkg.dev/gardener-project/releases
         slack:
