@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.23.1
 
 require (
-	github.com/gardener/gardener v1.107.0
+	github.com/gardener/gardener v1.107.2
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.35.0
 	github.com/spf13/pflag v1.0.5
