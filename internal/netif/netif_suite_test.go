@@ -107,6 +107,11 @@ var _ = Describe("Manager", func() {
 
 			It("should return error when deleting ip address", func() {
 				mh.EXPECT().
+					RouteDel(gomock.Any()).
+					Return(nil).
+					Times(1)
+
+				mh.EXPECT().
 					AddrDel(gomock.Eq(dummy), gomock.Eq(addr)).
 					Return(fmt.Errorf("err")).
 					Times(1)
@@ -116,6 +121,10 @@ var _ = Describe("Manager", func() {
 			})
 
 			It("should return already removed error", func() {
+				mh.EXPECT().
+					RouteDel(gomock.Any()).
+					Return(nil).
+					Times(1)
 				mh.EXPECT().
 					AddrDel(gomock.Eq(dummy), gomock.Eq(addr)).
 					// Return(syscall.EEXIST).
@@ -129,6 +138,11 @@ var _ = Describe("Manager", func() {
 			It("should return no error when deleting link", func() {
 				mh.EXPECT().
 					AddrDel(gomock.Eq(dummy), gomock.Eq(addr)).
+					Return(nil).
+					Times(1)
+
+				mh.EXPECT().
+					RouteDel(gomock.Any()).
 					Return(nil).
 					Times(1)
 
@@ -195,6 +209,11 @@ var _ = Describe("Manager", func() {
 					Return(syscall.EEXIST).
 					Times(1)
 
+				mh.EXPECT().
+					RouteAdd(gomock.Any()).
+					Return(nil).
+					Times(1)
+
 				err := manager.EnsureIPAddress()
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -239,7 +258,10 @@ var _ = Describe("Manager", func() {
 					AddrAdd(gomock.Eq(dummy), gomock.Eq(addr)).
 					Return(syscall.EEXIST).
 					Times(1)
-
+				mh.EXPECT().
+					RouteAdd(gomock.Any()).
+					Return(nil).
+					Times(1)
 				err := manager.EnsureIPAddress()
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -249,7 +271,10 @@ var _ = Describe("Manager", func() {
 					AddrAdd(gomock.Eq(dummy), gomock.Eq(addr)).
 					Return(nil).
 					Times(1)
-
+				mh.EXPECT().
+					RouteAdd(gomock.Any()).
+					Return(nil).
+					Times(1)
 				err := manager.EnsureIPAddress()
 				Expect(err).ToNot(HaveOccurred())
 			})
