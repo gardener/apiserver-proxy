@@ -29,7 +29,7 @@ RUN mkdir -p ./sbin ./lib ./usr/lib ./tmp ./run ./etc/iproute2 \
     && cp -d /lib/libc.musl-* ./lib                                         && echo "package musl" \
     && cp -d /usr/lib/libcap.* ./usr/lib                                    && echo "package libcap2" \
     && cp -d /usr/lib/libpsx.* ./usr/lib                                    && echo "package libcap2" \
-    && cp -d /lib/libz.* ./lib                                              && echo "package zlib" \
+    && cp -d /usr/lib/libz.* ./lib                                          && echo "package zlib" \
     && cp -d /usr/lib/libzstd.* ./lib                                       && echo "package zstd-libs" \
     && cp -d /usr/lib/libelf* ./usr/lib                                     && echo "package libelf" \
     && cp -d /usr/lib/libmnl.* ./usr/lib                                    && echo "package libmnl" \
