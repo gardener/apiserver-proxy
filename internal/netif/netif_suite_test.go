@@ -74,9 +74,6 @@ var _ = Describe("Manager", func() {
 				Expect(dm.addr.IPNet).To(Equal(&net.IPNet{IP: net.ParseIP(ip), Mask: net.CIDRMask(32, 32)}))
 			})
 
-			It("should have the correct scope", func() {
-				Expect(dm.addr.Scope).To(Equal(0xfe))
-			})
 		})
 
 		It("should set the correct device name", func() {

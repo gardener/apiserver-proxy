@@ -39,8 +39,6 @@ type netifManagerDefault struct {
 // NewNetifManager returns a new instance of NetifManager with the ip address set to the provided values
 // These ip addresses will be bound to any devices created by this instance.
 func NewNetifManager(addr *netlink.Addr, devName string) Manager {
-	// Set scope to host only
-	addr.Scope = 0xfe
 
 	return &netifManagerDefault{
 		&netlink.Handle{},
