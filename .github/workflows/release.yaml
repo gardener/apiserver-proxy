@@ -1,0 +1,36 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      next-version:
+        type: choice
+        options:
+          - bump-minor
+          - bump-patch
+
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yaml
+    with:
+      mode: release
+    secrets: inherit
+    permissions:
+      contents: read
+      id-token: write
+      packges: write
+
+  release-to-github-and-bump:
+    uses: gardener/cc-utils/.github/workflows/release.yaml@master
+    needs:
+      - build
+    secrets: inherit
+    permissions:
+      contents: write
+      id-token: write
+      packges: write
+    with:
+      release-commit-target: branch
+      next-version: ${{ inputs.next-version }}
+      next-version-callback-action-path:
+      slack-channel-id: C9CEBQPGE # #sap-tech-gardener
