@@ -94,11 +94,11 @@ jobs:
                     see: https://github.com/securego/gosec
                     enabled by: https://github.com/gardener/apiserver-proxy/pull/143
             - name: test-results
-                          relation: local
-                          access:
-                            type: localBlob
-                            localReference: verify-log.tar.gz
-                          labels:
-                            - name: gardener.cloud/purposes
-                              value:
-                                - test
+              relation: local
+              access:
+                type: localBlob
+                localReference: verify-log.tar.gz
+              labels:
+                - name: gardener.cloud/purposes
+                  value:
+                    - test
