@@ -72,7 +72,7 @@ jobs:
 
           tar czf /tmp/blobs.d/gosec-report.tar.gz gosec-report.sarif
           tar czf /tmp/blobs.d/verify-log.tar.gz -C/tmp/blobs.d verify-log.txt
-      - name: add-sast-report-to-component-descriptor
+      - name: add-reports-to-component-descriptor
         uses: gardener/cc-utils/.github/actions/export-ocm-fragments@master
         with:
           blobs-directory: .
