@@ -18,7 +18,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      packges: write
+      packages: write
 
   release-to-github-and-bump:
     uses: gardener/cc-utils/.github/workflows/release.yaml@master
@@ -28,7 +28,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
-      packges: write
+      packages: write
     with:
       release-commit-target: branch
       next-version: ${{ inputs.next-version }}
