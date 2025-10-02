@@ -1,0 +1,6 @@
+# See the OWNERS docs at https://go.k8s.io/owners
+
+reviewers:
+- apiserver-proxy-reviewers
+approvers:
+- apiserver-proxy-approvers
