@@ -1,0 +1,13 @@
+# See the OWNERS docs at https://go.k8s.io/owners
+
+aliases:
+  apiserver-proxy-reviewers:
+  - axel7born
+  - DockToFuture
+  - marwinski
+  - ScheererJ
+  apiserver-proxy-approvers:
+  - axel7born
+  - DockToFuture
+  - marwinski
+  - ScheererJ
