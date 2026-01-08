@@ -16,7 +16,7 @@ RUN go mod download
 RUN make build GOARCH=$TARGETARCH EFFECTIVE_VERSION=$EFFECTIVE_VERSION
 
 #############      apiserver-proxy-builder      #############
-FROM alpine:3.21.3 AS apiserver-proxy-builder
+FROM alpine:3.23.2 AS apiserver-proxy-builder
 
 RUN apk add --no-cache iproute2-minimal
 
