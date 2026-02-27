@@ -3,7 +3,7 @@ module github.com/gardener/apiserver-proxy
 go 1.25.6
 
 require (
-	github.com/gardener/gardener v1.136.2
+	github.com/gardener/gardener v1.137.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.39.0
 	github.com/spf13/pflag v1.0.10
@@ -12,7 +12,7 @@ require (
 	golang.org/x/tools v0.42.0
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2
 	k8s.io/klog/v2 v2.130.1
-	sigs.k8s.io/controller-runtime v0.22.5
+	sigs.k8s.io/controller-runtime v0.23.1
 )
 
 require (
@@ -69,18 +69,18 @@ require (
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.34.3 // indirect
-	k8s.io/apiextensions-apiserver v0.34.3 // indirect
-	k8s.io/apimachinery v0.34.3 // indirect
-	k8s.io/code-generator v0.34.3 // indirect
+	k8s.io/api v0.35.1 // indirect
+	k8s.io/apiextensions-apiserver v0.35.1 // indirect
+	k8s.io/apimachinery v0.35.1 // indirect
+	k8s.io/code-generator v0.35.1 // indirect
 	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
-	k8s.io/gengo/v2 v2.0.0-20250820003526-c297c0c1eb9d // indirect
+	k8s.io/gengo/v2 v2.0.0-20250922181213-ec3ebc5fd46b // indirect
 	k8s.io/klog v1.0.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20250910181357-589584f1c912 // indirect
-	k8s.io/utils v0.0.0-20260108192941-914a6e750570 // indirect
-	sigs.k8s.io/controller-tools v0.19.0 // indirect
+	k8s.io/utils v0.0.0-20260210185600-b8788abfbbc2 // indirect
+	sigs.k8s.io/controller-tools v0.20.1 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
-	sigs.k8s.io/structured-merge-diff/v6 v6.3.0 // indirect
+	sigs.k8s.io/structured-merge-diff/v6 v6.3.2-0.20260122202528-d9cc6641c482 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
