@@ -1,13 +1,14 @@
 module github.com/gardener/apiserver-proxy
 
-go 1.25.6
+go 1.26
 
 require (
 	github.com/gardener/gardener v1.138.0
+	github.com/gardener/gardener/pkg/apis v1.138.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.39.1
 	github.com/spf13/pflag v1.0.10
-	github.com/vishvananda/netlink v1.0.0
+	github.com/vishvananda/netlink v1.3.1
 	go.uber.org/mock v0.6.0
 	golang.org/x/tools v0.42.0
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2
@@ -54,7 +55,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/spf13/cobra v1.10.2 // indirect
-	github.com/vishvananda/netns v0.0.0-20190625233234-7109fa855b0f // indirect
+	github.com/vishvananda/netns v0.0.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect

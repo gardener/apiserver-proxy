@@ -30,9 +30,15 @@ func NewSidecarApp(params *ConfigParams) (*SidecarApp, error) {
 		return nil, xerrors.Errorf("unable to parse IP address %q - %v", c.params.IPAddress, err)
 	}
 
+	scope, ok := IPScopes[params.IPScope]
+	if !ok {
+		return nil, xerrors.Errorf("invalid IP scope %q", params.IPScope)
+	}
+
+	addr.Scope = scope
 	c.localIP = addr
 
-	klog.Infof("Using IP address %q", params.IPAddress)
+	klog.Infof("Using IP address %q with scope %q", params.IPAddress, params.IPScope)
 
 	return c, nil
 }

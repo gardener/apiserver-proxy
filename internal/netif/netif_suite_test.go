@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/vishvananda/netlink"
 	gomock "go.uber.org/mock/gomock"
+	"golang.org/x/sys/unix"
 )
 
 func TestNetif(t *testing.T) {
@@ -70,7 +71,7 @@ var _ = Describe("Manager", func() {
 				Expect(dm.addr).NotTo(BeNil(), "addr should always be set")
 			})
 
-			It("should set point to the corrext IP", func() {
+			It("should set point to the correct IP", func() {
 				Expect(dm.addr.IPNet).To(Equal(&net.IPNet{IP: net.ParseIP(ip), Mask: net.CIDRMask(32, 32)}))
 			})
 
@@ -158,6 +159,11 @@ var _ = Describe("Manager", func() {
 
 			It("should return error when adding ip address", func() {
 				mh.EXPECT().
+					AddrList(gomock.Any(), gomock.Any()).
+					Return([]netlink.Addr{}, nil).
+					Times(1)
+
+				mh.EXPECT().
 					LinkAdd(gomock.Any()).
 					Return(nil).
 					Times(1)
@@ -176,7 +182,12 @@ var _ = Describe("Manager", func() {
 				Expect(err).To(HaveOccurred())
 			})
 
-			It("should return already exists error", func() {
+			It("should ignore already existing ip address", func() {
+				mh.EXPECT().
+					AddrList(gomock.Any(), gomock.Any()).
+					Return([]netlink.Addr{*addr}, nil).
+					Times(1)
+
 				mh.EXPECT().
 					LinkAdd(gomock.Any()).
 					Return(nil).
@@ -185,11 +196,6 @@ var _ = Describe("Manager", func() {
 				mh.EXPECT().
 					LinkSetUp(gomock.Any()).
 					Return(nil).
-					Times(1)
-
-				mh.EXPECT().
-					AddrAdd(gomock.Eq(dummy), gomock.Eq(addr)).
-					Return(syscall.EEXIST).
 					Times(1)
 
 				err := manager.EnsureIPAddress()
@@ -221,27 +227,11 @@ var _ = Describe("Manager", func() {
 					Times(1)
 			})
 
-			It("should return error when adding ip address", func() {
+			It("add non-existing ip address", func() {
 				mh.EXPECT().
-					AddrAdd(gomock.Eq(dummy), gomock.Eq(addr)).
-					Return(fmt.Errorf("err")).
+					AddrList(gomock.Any(), gomock.Any()).
+					Return([]netlink.Addr{}, nil).
 					Times(1)
-
-				err := manager.EnsureIPAddress()
-				Expect(err).To(HaveOccurred())
-			})
-
-			It("should return already exists error", func() {
-				mh.EXPECT().
-					AddrAdd(gomock.Eq(dummy), gomock.Eq(addr)).
-					Return(syscall.EEXIST).
-					Times(1)
-
-				err := manager.EnsureIPAddress()
-				Expect(err).ToNot(HaveOccurred())
-			})
-
-			It("should return no error when deleting link", func() {
 				mh.EXPECT().
 					AddrAdd(gomock.Eq(dummy), gomock.Eq(addr)).
 					Return(nil).
@@ -250,6 +240,58 @@ var _ = Describe("Manager", func() {
 				err := manager.EnsureIPAddress()
 				Expect(err).ToNot(HaveOccurred())
 			})
+
+			It("ignore existing ip address", func() {
+				mh.EXPECT().
+					AddrList(gomock.Any(), gomock.Any()).
+					Return([]netlink.Addr{*addr}, nil).
+					Times(1)
+
+				mh.EXPECT().
+					AddrAdd(gomock.Eq(dummy), gomock.Eq(addr)).
+					Return(nil).
+					Times(0)
+
+				err := manager.EnsureIPAddress()
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("switch ip scope on mismatch", func() {
+				addr.Scope = unix.RT_SCOPE_HOST
+				addrExist := *addr
+				addrExist.Scope = unix.RT_SCOPE_UNIVERSE
+				mh.EXPECT().
+					AddrList(gomock.Any(), gomock.Any()).
+					Return([]netlink.Addr{addrExist}, nil).
+					Times(1)
+
+				mh.EXPECT().
+					AddrDel(gomock.Eq(dummy), gomock.Eq(&addrExist)).
+					Return(nil).
+					Times(1)
+
+				mh.EXPECT().
+					AddrAdd(gomock.Eq(dummy), gomock.Eq(addr)).
+					Return(nil).
+					Times(1)
+
+				err := manager.EnsureIPAddress()
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("ignore existing ip address with same scope", func() {
+				addr.Scope = unix.RT_SCOPE_HOST
+				addrExist := *addr
+				addrExist.Scope = unix.RT_SCOPE_HOST
+				mh.EXPECT().
+					AddrList(gomock.Any(), gomock.Any()).
+					Return([]netlink.Addr{addrExist}, nil).
+					Times(1)
+
+				err := manager.EnsureIPAddress()
+				Expect(err).ToNot(HaveOccurred())
+			})
+
 		})
 	})
 

@@ -27,6 +27,7 @@ go run ./cmd/apiserver-proxy-sidecar --help
       --daemon                           [optional] indicates if the sidecar should run as a daemon (default true)
       --interface string                 [optional] name of the interface to add address to. (default "lo")
       --ip-address string                ip-address on which the proxy is listening.
+      --ip-address-scope string          ip-address scope on which the proxy is listening. (default "host")
       --log_backtrace_at traceLocation   when logging hits line file:N, emit a stack trace (default :0)
       --log_dir string                   If non-empty, write log files in this directory
       --log_file string                  If non-empty, use this log file
