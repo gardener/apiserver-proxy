@@ -69,6 +69,14 @@ sast-report: adjust-install-gosec.sh $(GOSEC)
 test:
 	@bash $(GARDENER_HACK_DIR)/test.sh ./cmd/... ./internal/...
 
+.PHONY: test-docker
+test-docker:
+	@docker run --rm --cap-add NET_ADMIN \
+		-v $(REPO_ROOT):/src \
+		-w /src \
+		golang:1.26.0 \
+		go test ./...
+
 .PHONY: test-cov
 test-cov:
 	@bash $(GARDENER_HACK_DIR)/test-cover.sh ./cmd/... ./internal/...
