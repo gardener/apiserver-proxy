@@ -20,6 +20,7 @@ import (
 type MockHandle struct {
 	ctrl     *gomock.Controller
 	recorder *MockHandleMockRecorder
+	isgomock struct{}
 }
 
 // MockHandleMockRecorder is the mock recorder for MockHandle.
@@ -65,6 +66,21 @@ func (m *MockHandle) AddrDel(link netlink.Link, addr *netlink.Addr) error {
 func (mr *MockHandleMockRecorder) AddrDel(link, addr any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddrDel", reflect.TypeOf((*MockHandle)(nil).AddrDel), link, addr)
+}
+
+// AddrList mocks base method.
+func (m *MockHandle) AddrList(link netlink.Link, family int) ([]netlink.Addr, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddrList", link, family)
+	ret0, _ := ret[0].([]netlink.Addr)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddrList indicates an expected call of AddrList.
+func (mr *MockHandleMockRecorder) AddrList(link, family any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddrList", reflect.TypeOf((*MockHandle)(nil).AddrList), link, family)
 }
 
 // LinkAdd mocks base method.
@@ -128,6 +144,7 @@ func (mr *MockHandleMockRecorder) LinkSetUp(arg0 any) *gomock.Call {
 type MockManager struct {
 	ctrl     *gomock.Controller
 	recorder *MockManagerMockRecorder
+	isgomock struct{}
 }
 
 // MockManagerMockRecorder is the mock recorder for MockManager.
@@ -145,6 +162,20 @@ func NewMockManager(ctrl *gomock.Controller) *MockManager {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockManager) EXPECT() *MockManagerMockRecorder {
 	return m.recorder
+}
+
+// CleanupDevice mocks base method.
+func (m *MockManager) CleanupDevice() error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CleanupDevice")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CleanupDevice indicates an expected call of CleanupDevice.
+func (mr *MockManagerMockRecorder) CleanupDevice() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CleanupDevice", reflect.TypeOf((*MockManager)(nil).CleanupDevice))
 }
 
 // EnsureIPAddress mocks base method.

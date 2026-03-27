@@ -15,6 +15,7 @@ import (
 type Handle interface {
 	AddrAdd(link netlink.Link, addr *netlink.Addr) error
 	AddrDel(link netlink.Link, addr *netlink.Addr) error
+	AddrList(link netlink.Link, family int) ([]netlink.Addr, error)
 	LinkByName(name string) (netlink.Link, error)
 	LinkSetUp(netlink.Link) error
 	LinkAdd(netlink.Link) error
@@ -53,8 +54,7 @@ func (m *netifManagerDefault) EnsureIPAddress() error {
 
 	l, err := m.LinkByName(m.devName)
 	if err != nil {
-		var linkNotFoundErr netlink.LinkNotFoundError
-		if !errors.As(err, &linkNotFoundErr) {
+		if _, ok := errors.AsType[netlink.LinkNotFoundError](err); !ok {
 			return xerrors.Errorf("could not get interface %s:\n%v", m.devName, err)
 		}
 
@@ -78,13 +78,27 @@ func (m *netifManagerDefault) EnsureIPAddress() error {
 
 	klog.V(6).Infof("Got interface %+v", l)
 
-	if err := m.AddrAdd(l, m.addr); err != nil {
-		if os.IsExist(err) {
-			klog.V(4).Infof("Address %q already exists. Skipping", m.addr.String())
-			return nil
-		}
+	// Check if ip already exists on the link
+	addrs, err := m.AddrList(l, netlink.FAMILY_V4)
+	if err != nil {
+		return xerrors.Errorf("could list addresses for interface %s:\n%v", m.devName, err)
+	}
 
-		return xerrors.Errorf("could not add IPV4 addresses %v", err)
+	for _, a := range addrs {
+		if a.Equal(*m.addr) {
+			if a.Scope == m.addr.Scope {
+				klog.V(4).Infof("Address %q already exists. Skipping", m.addr.String())
+				return nil
+			}
+			klog.V(4).Infof("Address %q scope mismatch. Deleting", m.addr.String())
+			if err := m.AddrDel(l, &a); err != nil {
+				return xerrors.Errorf("could not delete ip address with wrong scope %v", err)
+			}
+			break
+		}
+	}
+	if err := m.AddrAdd(l, m.addr); err != nil {
+		return xerrors.Errorf("could not add IPV4 address %v", err)
 	}
 
 	klog.Infof("Successfully added %q to %q", m.addr.String(), m.devName)
@@ -92,7 +106,7 @@ func (m *netifManagerDefault) EnsureIPAddress() error {
 	return nil
 }
 
-// EnsureIPAddress makes sure to have the device running as desired.
+// RemoveIPAddress removes the ip address again from the device. It does not remove the device itself.
 func (m *netifManagerDefault) RemoveIPAddress() error {
 	klog.V(4).Infof("Getting interface %q", m.devName)
 
@@ -117,11 +131,11 @@ func (m *netifManagerDefault) RemoveIPAddress() error {
 	return nil
 }
 
+// CleanupDevice removes the network device again.
 func (m *netifManagerDefault) CleanupDevice() error {
 	link, err := netlink.LinkByName(m.devName)
 	if err != nil {
-		var linkNotFoundErr netlink.LinkNotFoundError
-		if !errors.As(err, &linkNotFoundErr) {
+		if _, ok := errors.AsType[netlink.LinkNotFoundError](err); !ok {
 			return xerrors.Errorf("could not get interface %s:\n%v", m.devName, err)
 		}
 		// link already gone

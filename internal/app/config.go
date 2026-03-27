@@ -7,9 +7,21 @@ import (
 	"time"
 
 	"github.com/vishvananda/netlink"
+	"golang.org/x/sys/unix"
 
 	"github.com/gardener/apiserver-proxy/internal/netif"
 )
+
+var IPScopes map[string]int
+
+func init() {
+	IPScopes = make(map[string]int)
+	IPScopes["global"] = unix.RT_SCOPE_UNIVERSE
+	IPScopes["site"] = unix.RT_SCOPE_SITE
+	IPScopes["host"] = unix.RT_SCOPE_HOST
+	IPScopes["link"] = unix.RT_SCOPE_LINK
+	IPScopes["nowhere"] = unix.RT_SCOPE_NOWHERE
+}
 
 // ConfigParams lists the configuration options that can be provided to sidecar proxy
 type ConfigParams struct {
@@ -27,6 +39,8 @@ type ConfigParams struct {
 	Daemon bool
 	// IPAddress specifies the IP address on which the proxy is listening
 	IPAddress string
+	// IPScope specifies the scope of the IP address, see IPScopes map for supported values
+	IPScope string
 }
 
 // SidecarApp contains all the config required to run sidecar proxy.
