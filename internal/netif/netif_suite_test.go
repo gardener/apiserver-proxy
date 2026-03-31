@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/vishvananda/netlink"
-	gomock "go.uber.org/mock/gomock"
+	"go.uber.org/mock/gomock"
 )
 
 func TestNetif(t *testing.T) {
@@ -153,7 +153,6 @@ var _ = Describe("Manager", func() {
 					LinkByName(gomock.Eq("foo")).
 					Return(dummy, netlink.LinkNotFoundError{}).
 					Times(1)
-
 			})
 
 			It("should return error when adding ip address", func() {
@@ -172,6 +171,11 @@ var _ = Describe("Manager", func() {
 					Return(fmt.Errorf("err")).
 					Times(1)
 
+				mh.EXPECT().
+					LinkList().
+					Return([]netlink.Link{dummy}, nil).
+					Times(1)
+
 				err := manager.EnsureIPAddress()
 				Expect(err).To(HaveOccurred())
 			})
@@ -185,6 +189,11 @@ var _ = Describe("Manager", func() {
 				mh.EXPECT().
 					LinkSetUp(gomock.Any()).
 					Return(nil).
+					Times(1)
+
+				mh.EXPECT().
+					LinkList().
+					Return([]netlink.Link{dummy}, nil).
 					Times(1)
 
 				mh.EXPECT().
@@ -219,6 +228,10 @@ var _ = Describe("Manager", func() {
 					LinkByName(gomock.Eq("foo")).
 					Return(dummy, nil).
 					Times(1)
+				mh.EXPECT().
+					LinkList().
+					Return([]netlink.Link{dummy}, nil).
+					Times(1)
 			})
 
 			It("should return error when adding ip address", func() {
@@ -249,6 +262,44 @@ var _ = Describe("Manager", func() {
 
 				err := manager.EnsureIPAddress()
 				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+		Context("Duplicate IP exists", func() {
+			var dupLink netlink.Link
+			BeforeEach(func() {
+				dupLink = &netlink.Dummy{
+					LinkAttrs: netlink.LinkAttrs{Name: "dup"},
+				}
+
+				mh.EXPECT().
+					LinkByName(gomock.Eq("foo")).
+					Return(dummy, nil).
+					Times(1)
+			})
+
+			It("should remove duplicate ip address", func() {
+				mh.EXPECT().
+					LinkList().
+					Return([]netlink.Link{dummy, dupLink}, nil).
+					Times(1)
+
+				mh.EXPECT().
+					AddrList(dupLink, 0).
+					Return([]netlink.Addr{*addr}, nil).
+					Times(1)
+
+				mh.EXPECT().
+					AddrDel(dupLink, addr).
+					Return(nil).
+					Times(1)
+
+				mh.EXPECT().
+					AddrAdd(gomock.Eq(dummy), gomock.Eq(addr)).
+					Return(fmt.Errorf("err")).
+					Times(1)
+
+				err := manager.EnsureIPAddress()
+				Expect(err).To(HaveOccurred())
 			})
 		})
 	})
