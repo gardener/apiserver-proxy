@@ -65,12 +65,12 @@ func (m *netifManagerDefault) EnsureIPAddress() error {
 		}
 		err = m.LinkAdd(dummyLink)
 		if err != nil {
-			return xerrors.Errorf("could add dummy interface %s:\n%v", m.devName, err)
+			return xerrors.Errorf("could not add dummy interface %s:\n%v", m.devName, err)
 		}
 
 		err = m.LinkSetUp(dummyLink)
 		if err != nil {
-			return xerrors.Errorf("could set interface %s up:\n%v", m.devName, err)
+			return xerrors.Errorf("could not set interface %s up:\n%v", m.devName, err)
 		}
 
 		l = dummyLink
