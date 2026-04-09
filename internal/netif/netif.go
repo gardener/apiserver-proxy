@@ -15,10 +15,12 @@ import (
 type Handle interface {
 	AddrAdd(link netlink.Link, addr *netlink.Addr) error
 	AddrDel(link netlink.Link, addr *netlink.Addr) error
+	AddrList(link netlink.Link, family int) ([]netlink.Addr, error)
 	LinkByName(name string) (netlink.Link, error)
 	LinkSetUp(netlink.Link) error
 	LinkAdd(netlink.Link) error
 	LinkDel(netlink.Link) error
+	LinkList() ([]netlink.Link, error)
 }
 
 // Manager ensures that the dummy device is created or removed.
@@ -76,6 +78,11 @@ func (m *netifManagerDefault) EnsureIPAddress() error {
 		l = dummyLink
 	}
 
+	err = m.deduplicateIPAddress()
+	if err != nil {
+		return xerrors.Errorf("could not deduplicate IP address:\n%v", err)
+	}
+
 	klog.V(6).Infof("Got interface %+v", l)
 
 	if err := m.AddrAdd(l, m.addr); err != nil {
@@ -92,7 +99,35 @@ func (m *netifManagerDefault) EnsureIPAddress() error {
 	return nil
 }
 
-// EnsureIPAddress makes sure to have the device running as desired.
+// deduplicateIPAddress removes duplicates of the given IP address on other devices
+func (m *netifManagerDefault) deduplicateIPAddress() error {
+	klog.V(4).Infof("Deduplicating address %q", m.addr.String())
+	links, err := m.LinkList()
+	if err != nil {
+		return xerrors.Errorf("could not list interfaces: %v", err)
+	}
+	for _, l := range links {
+		if l.Attrs().Name == m.devName {
+			// skip own link
+			continue
+		}
+		addrs, err := m.AddrList(l, 0)
+		if err != nil {
+			return xerrors.Errorf("could not list addresses for interface %s: %v", l.Attrs().Name, err)
+		}
+		for _, addr := range addrs {
+			if addr.Equal(*m.addr) {
+				klog.Infof("Found duplicate address %q on interface %q. Removing it.", m.addr.String(), l.Attrs().Name)
+				if err := m.AddrDel(l, &addr); err != nil {
+					return xerrors.Errorf("could not delete duplicate address %q from interface %q: %v", m.addr.String(), l.Attrs().Name, err)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// RemoveIPAddress removes the IP address from the given interface
 func (m *netifManagerDefault) RemoveIPAddress() error {
 	klog.V(4).Infof("Getting interface %q", m.devName)
 
