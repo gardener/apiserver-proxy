@@ -10,7 +10,7 @@ require (
 	github.com/vishvananda/netlink v1.0.0
 	go.uber.org/mock v0.6.0
 	golang.org/x/tools v0.44.0
-	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2
+	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da
 	k8s.io/klog/v2 v2.140.0
 	sigs.k8s.io/controller-runtime v0.23.3
 )
