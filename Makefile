@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ENSURE_GARDENER_MOD         := $(shell go get github.com/gardener/gardener@$$(go list -m -f "{{.Version}}" github.com/gardener/gardener))
+ENSURE_GARDENER_TOOLS_MOD   := $(shell go get github.com/gardener/gardener/hack/tools@$$(go list -m -f "{{.Version}}" github.com/gardener/gardener/hack/tools))
 GARDENER_HACK_DIR           := $(shell go list -m -f "{{.Dir}}" github.com/gardener/gardener)/hack
 REGISTRY                                     := europe-docker.pkg.dev/gardener-project/public/gardener
 APISERVER_PROXY_SIDECAR_IMAGE_REPOSITORY     := $(REGISTRY)/apiserver-proxy
