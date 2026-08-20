@@ -23,8 +23,8 @@ github.com/fxamacker/cbor/v2 v2.9.2 h1:X4Ksno9+x3cz0TZv69ec1hxP/+tymuR8PXQJyDwfh
 github.com/fxamacker/cbor/v2 v2.9.2/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
 github.com/gardener/gardener v1.148.4 h1:LD9dqXtIGZsZTC7kwXxi80Xs0e2D4xPMmKlaJIJGH3k=
 github.com/gardener/gardener v1.148.4/go.mod h1:MjqhwIfY56YgkngFf9FdlDb23xRTs9eiUv7c2uvAkPU=
-github.com/gardener/gardener/hack/tools v1.149.2 h1:ta00KJqoSaMQ8wRIehEy7EGlqoV7sjaM3PD7zgrYblw=
-github.com/gardener/gardener/hack/tools v1.149.2/go.mod h1:AScKS5MFZnOwia6F/6W3s3Agg3K5l9n9bgd8Tqyie5o=
+github.com/gardener/gardener/hack/tools v1.149.3 h1:XL6+15tsGtX0pDzYiUVrWe/qlfIOoq0vC+Wv1TeKHWg=
+github.com/gardener/gardener/hack/tools v1.149.3/go.mod h1:AScKS5MFZnOwia6F/6W3s3Agg3K5l9n9bgd8Tqyie5o=
 github.com/go-logr/logr v1.4.3 h1:CjnDlHq8ikf6E492q6eKboGOC0T8CDaOvkHCIg8idEI=
 github.com/go-logr/logr v1.4.3/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/go-logr/zapr v1.3.0 h1:XGdV8XW8zdwFiwOA2Dryh1gj2KRQyOOoNmBy4EplIcQ=
