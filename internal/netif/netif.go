@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright Contributors to the Gardener project
+// SPDX-FileCopyrightText: Contributors to the Gardener project
 // SPDX-License-Identifier: Apache-2.0
 
 //go:generate mockgen -source netif.go -destination mocks_test.go -package netif
