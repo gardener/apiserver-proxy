@@ -11,7 +11,7 @@
   "packageRules": [
     {
       "matchDatasources": ["docker", "go-version"],
-      "matchPackagePatterns": ["golang"],
+      "matchPackagePatterns": ["golang", "alpine"],
       "automerge": true
     },
     {
