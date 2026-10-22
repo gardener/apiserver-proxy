@@ -6,6 +6,7 @@ require (
 	github.com/gardener/gardener v1.153.2
 	github.com/gardener/gardener/hack/tools v1.153.2
 	github.com/onsi/ginkgo v1.16.5
+	github.com/onsi/ginkgo/v2 v2.33.1
 	github.com/onsi/gomega v1.44.0
 	github.com/spf13/pflag v1.0.10
 	github.com/vishvananda/netlink v1.3.1
