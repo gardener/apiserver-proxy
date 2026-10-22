@@ -21,10 +21,10 @@ github.com/fsnotify/fsnotify v1.10.1 h1:b0/UzAf9yR5rhf3RPm9gf3ehBPpf0oZKIjtpKrx5
 github.com/fsnotify/fsnotify v1.10.1/go.mod h1:TLheqan6HD6GBK6PrDWyDPBaEV8LspOxvPSjC+bVfgo=
 github.com/fxamacker/cbor/v2 v2.9.4 h1:xwjVlxEMR3S605oUlgBjKLTTeGFciYPGYCtF/35LKGo=
 github.com/fxamacker/cbor/v2 v2.9.4/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
-github.com/gardener/gardener v1.153.1 h1:/DvqoDPFvPXiX+kYi6WhcdtFFh5o3wGtovfXfsFnuCE=
-github.com/gardener/gardener v1.153.1/go.mod h1:aQlEtzjcaj0oZqhtL/dCLSgSNIDfouk2slsHTKF7WC0=
-github.com/gardener/gardener/hack/tools v1.153.1 h1:2wSejLLkgBUAJaJ1g84O+6wLQoCkoWnDw9gu0scR3Lw=
-github.com/gardener/gardener/hack/tools v1.153.1/go.mod h1:4wRCh97Ql2YBll0xrGjQphpE0vlgRIibaIG70eY/LDE=
+github.com/gardener/gardener v1.153.2 h1:3cA9HqOW/K5gfOqmEk4utnTpSFXiiyyNPw+rNkAD4q0=
+github.com/gardener/gardener v1.153.2/go.mod h1:aQlEtzjcaj0oZqhtL/dCLSgSNIDfouk2slsHTKF7WC0=
+github.com/gardener/gardener/hack/tools v1.153.2 h1:W/FOZW3QS3Nhef6lNdBE/9TyBbUPdJIVNLushFnG9Wk=
+github.com/gardener/gardener/hack/tools v1.153.2/go.mod h1:4wRCh97Ql2YBll0xrGjQphpE0vlgRIibaIG70eY/LDE=
 github.com/go-logr/logr v1.4.4 h1:tG4xh9yMsRCAiodLVTxyrkzSZ9+o0L1Kg/+cPVcbP/8=
 github.com/go-logr/logr v1.4.4/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/go-logr/zapr v1.3.0 h1:XGdV8XW8zdwFiwOA2Dryh1gj2KRQyOOoNmBy4EplIcQ=
