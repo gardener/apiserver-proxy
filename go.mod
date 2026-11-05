@@ -3,8 +3,8 @@ module github.com/gardener/apiserver-proxy
 go 1.26.8
 
 require (
-	github.com/gardener/gardener v1.154.2
-	github.com/gardener/gardener/hack/tools v1.154.2
+	github.com/gardener/gardener v1.154.3
+	github.com/gardener/gardener/hack/tools v1.154.3
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.44.0
 	github.com/spf13/pflag v1.0.10
