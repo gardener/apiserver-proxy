@@ -54,7 +54,7 @@ check-generate:
 
 .PHONY: check
 check: $(GOIMPORTS) $(GOLANGCI_LINT)
-	@bash $(GARDENER_HACK_DIR)//check.sh ./cmd/... ./internal/...
+	@bash $(GARDENER_HACK_DIR)/check.sh ./cmd/... ./internal/...
 
 .PHONY: format
 format: $(GOIMPORTS) $(GOIMPORTSREVISER)
