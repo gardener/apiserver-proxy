@@ -7,15 +7,19 @@
   ],
   "labels": ["kind/enhancement"],
   "postUpdateOptions": ["gomodTidy"],
+  // Pin and maintain image/action digests so build inputs cannot be swapped under a mutable tag.
+  "pinDigests": true,
   "separateMinorPatch": true,
   "packageRules": [
     {
       "matchDatasources": ["docker", "go-version"],
       "matchPackagePatterns": ["golang", "alpine"],
+      "matchUpdateTypes": ["patch", "digest"],
       "automerge": true
     },
     {
       "matchManagers": ["gomod"],
+      "matchUpdateTypes": ["patch", "digest"],
       "automerge": true
     },
     {
@@ -25,6 +29,7 @@
       matchPackageNames: [
         '/^github\\.com/gardener/',
       ],
+      "matchUpdateTypes": ["patch", "digest"],
       "automerge": true
     },
     {
@@ -33,6 +38,7 @@
         "^actions/checkout$",
         "^actions/setup-go$",
       ],
+      "matchUpdateTypes": ["patch", "digest"],
       "automerge": true
     },
     {

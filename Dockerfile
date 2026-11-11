@@ -1,5 +1,5 @@
 #############      builder              #############
-FROM --platform=${BUILDPLATFORM} golang:1.27.4 AS builder
+FROM --platform=${BUILDPLATFORM} golang:1.27.4@sha256:08bcb99a38f85a265f9a93d1d3323e2440eec333380f3ea26ee0dec9264bb41c AS builder
 
 WORKDIR /go/src/github.com/gardener/apiserver-proxy
 COPY . .
@@ -16,7 +16,7 @@ RUN go mod download
 RUN make build GOARCH=$TARGETARCH EFFECTIVE_VERSION=$EFFECTIVE_VERSION
 
 #############      apiserver-proxy-builder      #############
-FROM alpine:3.24.4 AS apiserver-proxy-builder
+FROM alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS apiserver-proxy-builder
 
 RUN apk add --no-cache iproute2-minimal
 
