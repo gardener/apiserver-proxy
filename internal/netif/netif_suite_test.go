@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"testing"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/vishvananda/netlink"
 	"go.uber.org/mock/gomock"
@@ -70,7 +70,7 @@ var _ = Describe("Manager", func() {
 				Expect(dm.addr).NotTo(BeNil(), "addr should always be set")
 			})
 
-			It("should set point to the corrext IP", func() {
+			It("should set pointer to the correct IP", func() {
 				Expect(dm.addr.IPNet).To(Equal(&net.IPNet{IP: net.ParseIP(ip), Mask: net.CIDRMask(32, 32)}))
 			})
 
