@@ -19,7 +19,7 @@
     },
     {
       "matchManagers": ["gomod"],
-      "matchUpdateTypes": ["patch", "digest"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
       "automerge": true
     },
     {
@@ -29,7 +29,7 @@
       matchPackageNames: [
         '/^github\\.com/gardener/',
       ],
-      "matchUpdateTypes": ["patch", "digest"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
       "automerge": true
     },
     {
@@ -38,7 +38,7 @@
         "^actions/checkout$",
         "^actions/setup-go$",
       ],
-      "matchUpdateTypes": ["patch", "digest"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
       "automerge": true
     },
     {
