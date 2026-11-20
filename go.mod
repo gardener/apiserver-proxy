@@ -4,7 +4,7 @@ go 1.26.8
 
 require (
 	github.com/gardener/gardener v1.155.1
-	github.com/gardener/gardener/hack/tools v1.155.1
+	github.com/gardener/gardener/hack/tools v1.155.2
 	github.com/onsi/ginkgo/v2 v2.34.0
 	github.com/onsi/gomega v1.44.0
 	github.com/spf13/pflag v1.0.10
