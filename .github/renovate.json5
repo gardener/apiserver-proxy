@@ -3,6 +3,7 @@
   "dependencyDashboard": true,
   "extends": [
     "config:recommended",
+    "helpers:pinGitHubActionDigests",
     "github>gardener/ci-infra//config/renovate/automerge-with-tide.json5"
   ],
   "labels": ["kind/enhancement"],
